@@ -23,6 +23,8 @@ public class UserService {
                 .email(userDto.getEmail())
                 .firstName(userDto.getFirstName())
                 .lastName(userDto.getLastName())
+                .password("tmp123")
+                .role(Role.USER)
                 .build();
 
         User savedUser = userRepository.save(user);
