@@ -1,9 +1,29 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from functools import wraps
 from . import db
 from .models import User
 
 main_bp = Blueprint('main', __name__)
+
+# DLA MARTY - od teraz tylko admin bedzie mogl usuwac uzytkownikow oraz sprawdzac liste
+# dodałem tez mozliwosc definiowania ról uzytkownikow w Rejestracja (tymaczasowo)
+# --- POMONICZE ENDPOINTY: ADMIN ---
+
+def admin_required():
+    def wrapper(fn):
+        @wraps(fn)
+        def decorator(*args, **kwargs):
+            verify_jwt_in_request() 
+            user_id = get_jwt_identity()
+            user = User.query.get(user_id)
+            
+            if not user or user.role != User.ROLE_ADMIN:
+                return jsonify(msg="Brak uprawnień administratora!"), 403
+            
+            return fn(*args, **kwargs)
+        return decorator
+    return wrapper  
 
 # --- ENDPOINT: LOGOWANIE ---
 @main_bp.route('/api/login', methods=['POST'])
@@ -22,15 +42,19 @@ def login():
 
 # --- ENDPOINT: POBIERANIE WSZYSTKICH UŻYTKOWNIKÓW ---
 @main_bp.route('/api/users', methods=['GET'])
+@admin_required()
 def get_users():
     users = User.query.all()
     return jsonify([user.to_dict() for user in users])
 
+# --- ENDPOINT: POBIERANIE UŻYTKOWNIKA PO ID ---
 @main_bp.route('/api/users/<int:id>', methods=['GET'])
+@admin_required()
 def get_user_by_id(id):
     user = User.query.get_or_404(id)    
     return jsonify(user.to_dict())
 
+# --- ENDPOINT: REJESTRACJA UŻYTKOWNIKA ---
 @main_bp.route('/api/users', methods=['POST'])
 def create_user():
     data = request.get_json()
@@ -41,11 +65,17 @@ def create_user():
     if User.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'User already exists'}), 409
 
+    requested_role = data.get('role', User.ROLE_PACJENT)
+    
+    valid_roles = [User.ROLE_ADMIN, User.ROLE_TERAPEUTA, User.ROLE_PACJENT]
+    if requested_role not in valid_roles:
+         return jsonify({'error': 'Invalid role'}), 400
+
     new_user = User(
         email=data['email'],
         first_name=data.get('firstName'),
         last_name=data.get('lastName'),
-        role="USER"
+        role=requested_role 
     )
 
     new_user.set_password(data['password'])
@@ -74,9 +104,8 @@ def update_user(id):
 
 # --- ENDPOINT: USUWANIE (ZABEZPIECZONE TOKENEM) ---
 @main_bp.route('/api/users/<int:id>', methods=['DELETE'])
-@jwt_required()
+@admin_required()
 def delete_user(id):
-    current_user_id = get_jwt_identity()
     user = User.query.get_or_404(id)
     db.session.delete(user)
     db.session.commit()
