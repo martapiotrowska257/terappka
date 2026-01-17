@@ -26,13 +26,11 @@ def get_users():
     users = User.query.all()
     return jsonify([user.to_dict() for user in users])
 
-# --- ENDPOINT: POBIERANIE JEDNEGO UŻYTKOWNIKA ---
 @main_bp.route('/api/users/<int:id>', methods=['GET'])
 def get_user_by_id(id):
     user = User.query.get_or_404(id)    
     return jsonify(user.to_dict())
 
-# --- ENDPOINT: REJESTRACJA (TWORZENIE UŻYTKOWNIKA) ---
 @main_bp.route('/api/users', methods=['POST'])
 def create_user():
     data = request.get_json()
