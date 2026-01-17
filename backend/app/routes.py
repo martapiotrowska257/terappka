@@ -9,6 +9,11 @@ def get_users():
     users = User.query.all()
     return jsonify([user.to_dict() for user in users])
 
+@main_bp.route('/api/users/<int:id>', methods=['GET'])
+def get_user_by_id(id):
+    user = User.query.get_or_404(id)    
+    return jsonify(user.to_dict())
+
 @main_bp.route('/api/users', methods=['POST'])
 def create_user():
     data = request.get_json()
