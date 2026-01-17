@@ -101,3 +101,5 @@ if __name__ == '__main__':
     
     # Uruchom na porcie 8080 (tak jak Spring Boot)
     app.run(debug=True, port=8080)
+
+    #test
