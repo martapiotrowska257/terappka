@@ -13,7 +13,7 @@ export default function UserProfile() {
         return (
             <div>
                 <p>Nie jesteś zalogowany</p>
-                <button onClick={() => signIn("keycloak")}>Zaloguj się przez KeyCloak</button>
+                <button onClick={() => signIn()}>Zaloguj się przez KeyCloak</button>
             </div>
         );
     }
