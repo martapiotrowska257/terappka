@@ -70,20 +70,6 @@ services:
   #     networks:
   #       - terappka_net
 
-  # api:
-  #   build:
-  #     context: ./backend/terappka-backend
-  #     dockerfile: Dockerfile
-  #   container_name: terappka-api
-  #   depends_on:
-  #     - mysqldb
-  #   ports:
-  #     - "8081:8081"
-  #   environment:
-  #     SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/terappka_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-  #     SPRING_DATASOURCE_USERNAME: admin
-  #     SPRING_DATASOURCE_PASSWORD: admin
-
 volumes:
   mysql_data:
     driver: local
