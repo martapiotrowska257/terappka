@@ -1,9 +1,12 @@
 "use client";
 
 import { signIn, signOut, useSession } from "next-auth/react";
+import { useState } from "react";
+import LoginForm from "./LoginForm";
 
 export default function LoginButton() {
     const { data: session, status } = useSession();
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
     if (status === "loading") {
         return (
@@ -31,11 +34,14 @@ export default function LoginButton() {
     }
 
     return (
-        <button
-            onClick={() => signIn()}
+        <>        <button
+            onClick={() => setIsModalOpen(true)}
             className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transition-colors"
         >
             Zaloguj się
         </button>
+        {isModalOpen && <LoginForm onClose={() => (setIsModalOpen(false))} />}
+    </>
+
     );
 }
