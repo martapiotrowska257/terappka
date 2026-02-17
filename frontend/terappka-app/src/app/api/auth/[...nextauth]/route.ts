@@ -1,58 +1,87 @@
-import NextAuth from "next-auth";
-import KeycloakProvider from "next-auth/providers/keycloak"
-// import GoogleProvider from "next-auth/providers/google"
+import NextAuth, { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 
-const keycloakUrl = process.env.KEYCLOAK_URL;
-const keycloakInternalUrl = process.env.KEYCLOAK_INTERNAL_URL || keycloakUrl;
-const realm = process.env.KEYCLOAK_REALM;
+const authOptions: NextAuthOptions = {
+  providers: [
+    CredentialsProvider({
+      name: "Keycloak",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null;
 
-const handler = NextAuth({
-    providers: [
-        KeycloakProvider({
-            clientId: process.env.KEYCLOAK_CLIENT_ID!,
-            clientSecret: process.env.KEYCLOAK_CLIENT_SECRET || '',
-            issuer: `${keycloakUrl}/realms/${realm}`,
-            authorization: {
-                params: {
-                    scope: "openid email profile",
-                },
-                url: `${keycloakUrl}/realms/${realm}/protocol/openid-connect/auth`,
+        const payload = new URLSearchParams({
+          client_id: process.env.KEYCLOAK_CLIENT_ID!,
+          client_secret: process.env.KEYCLOAK_CLIENT_SECRET!,
+          grant_type: "password",
+          username: credentials.email, // Keycloak mapuje email jako username często, sprawdź to
+          password: credentials.password,
+          scope: "openid profile email",
+        });
+
+        try {
+          // 1. Żądanie o token do Keycloak
+          const res = await fetch(`${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
             },
-            token: `${keycloakInternalUrl}/realms/${realm}/protocol/openid-connect/token`,
-            userinfo: `${keycloakInternalUrl}/realms/${realm}/protocol/openid-connect/userinfo`,
-        }),
-        // GoogleProvider({
-        //     clientId: process.env.GOOGLE_CLIENT_ID!,
-        //     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        // })
-    ],
-    cookies: {
-        sessionToken: {
-            name: `next-auth.session-token`,
-            options: {
-                httpOnly: true,
-                sameSite: 'lax',
-                path: '/',
-                secure: process.env.NODE_ENV === 'production',
-            },
-        },
-    },
-    callbacks: {
-        async jwt({ token, user, account }) {
-            if (account && user) {
-                token.id = user.id
-            }
-            return token
-        },
+            body: payload,
+          });
 
-        async session({ session, token }) {
-            if (session.user && token.sub) {
-                session.user.id = token.sub;
-            }
-            return session;
-        },
-    },
-    debug: true,
-});
+          const data = await res.json();
 
+          if (!res.ok) {
+            console.error("Błąd logowania Keycloak:", data);
+            throw new Error(data.error_description || "Błąd logowania");
+          }
+
+          // 2. Pobranie danych użytkownika (opcjonalne, jeśli token nie ma wszystkiego)
+          // Często wystarczy zdekodować access_token, ale tu dla pewności pobieramy userinfo
+          // lub zwracamy podstawowe dane zmapowane z inputu + token
+          return {
+            id: data.session_state || "unknown", // lub sparsuj sub z tokena
+            name: credentials.email, 
+            email: credentials.email,
+            accessToken: data.access_token,
+            refreshToken: data.refresh_token,
+            expiresIn: data.expires_in,
+          };
+
+        } catch (error) {
+          console.error(error);
+          return null;
+        }
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user, account }) {
+      // Początkowe logowanie
+      if (user) {
+        token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
+        // Obliczamy czas wygaśnięcia (aktualny czas + czas życia tokena)
+        token.expiresAt = Date.now() + (user.expiresIn as number) * 1000;
+      }
+      
+      // Tutaj można dodać logikę odświeżania tokena (Refresh Token Rotation),
+      // jeśli token wygasł. Dla uproszczenia pomijam to w tym kroku.
+      
+      return token;
+    },
+    async session({ session, token }) {
+      session.accessToken = token.accessToken;
+      session.error = token.error;
+      return session;
+    },
+  },
+  pages: {
+    signIn: "/", // Gdzie przekierować w razie błędu (opcjonalne)
+  },
+};
+
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
