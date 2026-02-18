@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity 
 from functools import wraps
 from . import db
 from .models import User
@@ -13,32 +13,17 @@ main_bp = Blueprint('main', __name__)
 def admin_required():
     def wrapper(fn):
         @wraps(fn)
+        @jwt_required()
         def decorator(*args, **kwargs):
-            verify_jwt_in_request() 
-            user_id = get_jwt_identity()
-            user = User.query.get(user_id)
-            
-            if not user or user.role != User.ROLE_ADMIN:
-                return jsonify(msg="Brak uprawnień administratora!"), 403
-            
+            claims = get_jwt_identity()
+
+            # Tutaj bedzie logika sprawdzająca id lub email z keylocaka
+
             return fn(*args, **kwargs)
         return decorator
-    return wrapper  
+    return wrapper
 
-# --- ENDPOINT: LOGOWANIE ---
-@main_bp.route('/api/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-
-    user = User.query.filter_by(email=email).first()
-
-    if user and user.check_password(password):
-        access_token = create_access_token(identity=str(user.id))
-        return jsonify(access_token=access_token, user=user.to_dict()), 200
-    
-    return jsonify({"error": "Błędny email lub hasło"}), 401
+# --- ENDPOINT: LOGOWANIE --- USUNIETE!!! -- KEYLOCK BEDZIE TO OBSLUGIWAL
 
 # --- ENDPOINT: POBIERANIE WSZYSTKICH UŻYTKOWNIKÓW ---
 @main_bp.route('/api/users', methods=['GET'])
@@ -59,8 +44,9 @@ def get_user_by_id(id):
 def create_user():
     data = request.get_json()
     
-    if not data or 'email' not in data or 'password' not in data:
-        return jsonify({'error': 'Email and password are required'}), 400
+    # Usuwamy sprawdzanie hasła
+    if not data or 'email' not in data:
+        return jsonify({'error': 'Email is required'}), 400
 
     if User.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'User already exists'}), 409
@@ -79,8 +65,6 @@ def create_user():
         role=requested_role 
     )
 
-    new_user.set_password(data['password'])
-    
     try:
         db.session.add(new_user)
         db.session.commit()
