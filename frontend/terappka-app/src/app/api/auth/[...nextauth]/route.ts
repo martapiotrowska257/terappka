@@ -10,7 +10,7 @@ const decodeJwt = (token: string) => {
   }
 };
 
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Keycloak",

@@ -1,12 +1,11 @@
+// src/components/LoginButton.tsx
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
-import { useState } from "react";
-import LoginForm from "./LoginForm";
+import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
 
 export default function LoginButton() {
     const { data: session, status } = useSession();
-    const [isModalOpen, setIsModalOpen] = useState(false)
 
     if (status === "loading") {
         return (
@@ -24,7 +23,7 @@ export default function LoginButton() {
                     <span className="text-xs text-gray-500">{session.user?.email}</span>
                 </div>
                 <button
-                    onClick={() => signOut()}
+                    onClick={() => signOut({ callbackUrl: '/' })}
                     className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                 >
                     Wyloguj
@@ -34,14 +33,11 @@ export default function LoginButton() {
     }
 
     return (
-        <>        <button
-            onClick={() => setIsModalOpen(true)}
-            className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transition-colors"
+        <Link
+            href="/signIn"
+            className="inline-block px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md transition-colors"
         >
             Zaloguj się
-        </button>
-        {isModalOpen && <LoginForm onClose={() => (setIsModalOpen(false))} />}
-    </>
-
+        </Link>
     );
 }
