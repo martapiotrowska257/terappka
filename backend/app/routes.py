@@ -65,9 +65,10 @@ def create_user():
     if User.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'User already exists'}), 409
 
-    requested_role = data.get('role', User.ROLE_PACJENT)
+    requested_role = data.get('role', User.ROLE_PATIENT)
+
+    valid_roles = [User.ROLE_ADMIN, User.ROLE_THERAPIST, User.ROLE_PATIENT]
     
-    valid_roles = [User.ROLE_ADMIN, User.ROLE_TERAPEUTA, User.ROLE_PACJENT]
     if requested_role not in valid_roles:
          return jsonify({'error': 'Invalid role'}), 400
 
