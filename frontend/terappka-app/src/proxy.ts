@@ -8,21 +8,22 @@ export default withAuth(
   function middleware(req) {
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
+    
+    // Definiujemy role (upewnij się, że pasują do tych z Keycloaka)
+    const isPatient = token?.roles?.includes("user");
+    const isTherapist = token?.roles?.includes("therapist");
+    const isAdmin = token?.roles?.includes("admin");
 
-    // 1. Ochrona ścieżki /admin i jej podstron
-    if (path.startsWith("/admin")) {
-      // Jeśli użytkownik nie ma w tablicy ról "admin", odrzucamy go
-      if (!token?.roles?.includes("admin")) {
-        // Zwracamy przekierowanie na stronę główną (lub np. /brak-dostepu)
-        return NextResponse.redirect(new URL("/", req.url));
-      }
+if (path.startsWith("/admin") && !isAdmin) {
+      return NextResponse.redirect(new URL("/", req.url));
     }
 
-    // 2. Ochrona ścieżki /terapeuta i jej podstron
-    if (path.startsWith("/terapeuta")) {
-      if (!token?.roles?.includes("therapist")) {
-        return NextResponse.redirect(new URL("/", req.url));
-      }
+    if (path.startsWith("/terapeuta") && !isTherapist) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+
+    if (path.startsWith("/pacjent") && !isPatient) {
+      return NextResponse.redirect(new URL("/", req.url));
     }
     
     // Jeśli wszystkie testy przeszły pomyślnie, pozwalamy na załadowanie strony
@@ -43,6 +44,6 @@ export const config = {
   matcher: [
     "/admin/:path*",      // Chroni /admin oraz np. /admin/users
     "/terapeuta/:path*",  // Chroni /terapeuta oraz np. /terapeuta/kalendarz
-    "/profil/:path*"      // Chroni panel użytkownika (wystarczy samo bycie zalogowanym)
+    "/user/:path*"      // Chroni panel użytkownika (wystarczy samo bycie zalogowanym)
   ],
 };

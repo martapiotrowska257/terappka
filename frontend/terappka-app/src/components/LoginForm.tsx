@@ -96,8 +96,7 @@ export default function LoginForm() {
                         if (result?.error) {
                             setError("Nieprawidłowy login lub hasło");
                         } else {
-                            // Przekierowanie na stronę główną po zalogowaniu
-                            router.push("/");
+                            router.push("/router-roli");
                             router.refresh();
                         }
                     }
