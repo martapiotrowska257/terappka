@@ -18,6 +18,6 @@ export default async function RoleRouter() {
     } else if (roles.includes("therapist")) {
         redirect("/terapeuta");
     } else {
-        redirect("/user");
+        redirect("/pacjent");
     }
 }
