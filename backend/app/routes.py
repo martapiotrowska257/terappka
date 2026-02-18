@@ -62,6 +62,7 @@ def create_user():
         return jsonify({'error': 'User already exists'}), 409
 
     requested_role = data.get('role', User.ROLE_PATIENT)
+
     valid_roles = [User.ROLE_ADMIN, User.ROLE_THERAPIST, User.ROLE_PATIENT]
     
     if requested_role not in valid_roles:
