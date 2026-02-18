@@ -13,7 +13,8 @@ class User(db.Model):
     first_name = db.Column(db.String(255))
     last_name = db.Column(db.String(255))
     password = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(50), defult=ROLE_PATIENT)
+    
+    role = db.Column(db.String(50), default=ROLE_PATIENT)
 
     def set_password(self, password):
         self.password = generate_password_hash(password)
