@@ -29,7 +29,6 @@ def admin_required():
 
             user = get_current_user_from_token()
             
-            # 2. Sprawdź czy istnieje i czy jest adminem
             if not user or user.role != User.ROLE_ADMIN:
                 return jsonify(msg="Brak uprawnień administratora!"), 403
             

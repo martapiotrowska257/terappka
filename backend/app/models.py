@@ -16,12 +16,6 @@ class User(db.Model):
     
     role = db.Column(db.String(50), default=ROLE_PATIENT)
 
-    def set_password(self, password):
-        self.password = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password, password)
-
     def to_dict(self):
         return {
             'id': self.id,
