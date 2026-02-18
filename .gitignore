@@ -1,4 +1,5 @@
 .idea
+.env
 
 # Pamiętać, żeby później to zmienić
 /keycloak_data/
