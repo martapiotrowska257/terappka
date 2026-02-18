@@ -1,0 +1,79 @@
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: terappka_keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_DB: mysql
+      KC_DB_URL: jdbc:mysql://mysql:3306/keycloak
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+
+      KC_HOSTNAME_URL: http://localhost:8080
+      KC_HOSTNAME_ADMIN_URL: http://localhost:8080
+    volumes:
+      - ./keycloak_data:/opt/keycloak/data/import
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - terappka_net 
+
+  mysql:
+    image: mysql:8.0
+    container_name: terappka_db
+    # command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3307:3306"
+    networks:
+      - terappka_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # frontend:
+  #     build:
+  #       context: ./frontend/terappka-app 
+  #       dockerfile: Dockerfile
+  #     container_name: terappka_frontend
+  #     ports:
+  #       - "3000:3000"
+  #     environment:
+  #       KEYCLOAK_URL: http://localhost:8080
+  #       KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+  #       KEYCLOAK_REALM: terappka
+  #       KEYCLOAK_CLIENT_ID: terappka-client
+  #       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+
+  #       NEXTAUTH_URL: http://localhost:3000
+  #       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+
+  #       # GOOGLE_CLIENT_ID:
+  #       # GOOGLE_CLIENT_SECRET:
+        
+  #     depends_on:
+  #       - keycloak
+  #     networks:
+  #       - terappka_net
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  terappka_net:
+    driver: bridge

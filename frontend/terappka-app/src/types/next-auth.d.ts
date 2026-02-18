@@ -1,11 +1,30 @@
-import NextAuth, { DefaultSession } from "next-auth";
+import { DefaultSession, DefaultUser } from "next-auth";
+import { JWT } from "next-auth/jwt";
 
 declare module "next-auth" {
-    // dodajemy pole 'id' do użytkownika
-    // można dodać więcej, jeśli potrzeba
-    interface Session {
-        user: {
-            id?: string | null | undefined
-        } & DefaultSession["user"]
-    }
+  interface Session {
+    accessToken?: string;
+    error?: string;
+    user: {
+      id: string;
+      roles?: string[]; // <--- Dodajemy role do sesji
+    } & DefaultSession["user"];
+  }
+
+  interface User extends DefaultUser {
+    accessToken?: string;
+    refreshToken?: string;
+    expiresIn?: number;
+    roles?: string[]; // <--- Dodajemy role do użytkownika
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    accessToken?: string;
+    refreshToken?: string;
+    expiresAt?: number;
+    error?: string;
+    roles?: string[]; // <--- Dodajemy role do tokena
+  }
 }
