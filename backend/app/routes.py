@@ -29,7 +29,6 @@ def admin_required():
 
             user = get_current_user_from_token()
             
-            # 2. Sprawdź czy istnieje i czy jest adminem
             if not user or user.role != User.ROLE_ADMIN:
                 return jsonify(msg="Brak uprawnień administratora!"), 403
             
@@ -153,3 +152,78 @@ def get_appointments():
     ).all()
 
     return jsonify([appt.to_dict() for appt in appointments])
+
+# --- ENDPOINTY DO WYDARZEN/WIZYT ---
+
+# --- ZARZADZANIE STATUSEM WYDARZEN/WIZYTY ---
+
+@main_bp.route('/api/appointments/<int:id>/status', methods=['PATCH'])
+@jwt_required()
+def update_appointment_status(id):
+    current_user = get_current_user_from_token()
+    appointment = Appointment.query.get_or_404(id)
+
+    if current_user.role != User.ROLE_ADMIN:
+        if current_user.id != appointment.patient_id and current_user.id != appointment.therapist_id:
+            return jsonify({'error': 'Brak uprawnień do edycji tej wizyty'}), 403
+
+    data = request.get_json()
+    new_status = data.get('status')
+    
+    valid_statuses = [
+        Appointment.STATUS_SCHEDULED, 
+        Appointment.STATUS_CONFIRMED, 
+        Appointment.STATUS_COMPLETED, 
+        Appointment.STATUS_CANCELLED,
+        Appointment.STATUS_NO_SHOW
+    ]
+
+    if new_status not in valid_statuses:
+        return jsonify({'error': 'Nieprawidłowy status'}), 400
+
+    if new_status == Appointment.STATUS_CANCELLED:
+        reason = data.get('cancellationReason')
+        if not reason:
+            return jsonify({'error': 'Przy odwoływaniu wizyty wymagany jest powód'}), 400
+        appointment.cancellation_reason = reason
+
+    if new_status == Appointment.STATUS_COMPLETED:
+        if current_user.role == User.ROLE_PATIENT:
+            return jsonify({'error': 'Tylko terapeuta może oznaczyć wizytę jako zakończoną'}), 403
+        
+        notes = data.get('outcomeNotes')
+        if notes:
+            appointment.outcome_notes = notes
+
+    appointment.status = new_status
+    db.session.commit()
+
+    return jsonify(appointment.to_dict())
+
+# --- STANDARDOWE ENDPOINTY CRUD DLA WIZYT ---
+
+@main_bp.route('/api/appointments/<int:id>', methods=['PUT'])
+@jwt_required()
+def reschedule_appointment(id):
+    current_user = get_current_user_from_token()
+    appointment = Appointment.query.get_or_404(id)
+
+    if current_user.id != appointment.patient_id and current_user.id != appointment.therapist_id:
+        return jsonify({'error': 'Brak uprawnień'}), 403
+
+    data = request.get_json()
+    
+    if 'dateTime' in data:
+        try:
+            new_date = datetime.fromisoformat(data['dateTime'].replace('Z', '+00:00'))
+            
+            appointment.date_time = new_date
+            appointment.status = Appointment.STATUS_SCHEDULED
+            appointment.cancellation_reason = None 
+            
+            db.session.commit()
+            return jsonify(appointment.to_dict())
+        except ValueError:
+            return jsonify({'error': 'Błędny format daty'}), 400
+
+    return jsonify({'error': 'Brak nowej daty'}), 400
