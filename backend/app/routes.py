@@ -1,23 +1,56 @@
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt
+from flask import Blueprint, request, jsonify, g
 from functools import wraps
 from datetime import datetime
 from . import db
 from .models import User, Appointment
+
+from .auth import jwt_required
+import uuid
+from sqlalchemy.exc import IntegrityError
 
 main_bp = Blueprint('main', __name__)
 
 # --- POMOCNICZE FUNKCJE ---
 
 def get_current_user_from_token():
-    claims = get_jwt()
-
-    email = claims.get('email') 
-    
-    if not email:
+    claims = getattr(g, 'jwt_payload', None)
+    if not claims:
         return None
+ 
+    # Keycloak ID (sub) jest unikalnym identyfikatorem, lepiej używać go niż emaila jako ID
+    keycloak_id = claims.get('sub') 
+    email = claims.get('email')
+
+    # 1. Szukamy użytkownika w naszej bazie
+    user = User.query.get(keycloak_id)
+
+    # 2. Jeśli nie ma - tworzymy go automatycznie (JIT)
+    if not user:
+        # Logika wyciągania roli z tokena Keycloak
+        # Keycloak zazwyczaj trzyma role w: realm_access -> roles
+        realm_roles = claims.get('realm_access', {}).get('roles', [])
         
-    return User.query.filter_by(email=email).first()
+        user_role = User.ROLE_PATIENT
+        if 'admin' in realm_roles:       # Sprawdź nazwę roli jaką masz w Keycloak
+            user_role = User.ROLE_ADMIN
+        elif 'therapist' in realm_roles: # Sprawdź nazwę roli jaką masz w Keycloak
+            user_role = User.ROLE_THERAPIST
+
+        user = User(
+            id=keycloak_id, 
+            email=email,
+            first_name=claims.get('given_name', ''),
+            last_name=claims.get('family_name', ''),
+            role=user_role 
+        )
+        db.session.add(user)
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            user = User.query.get(keycloak_id)
+            
+    return user
 
 # --- DEKORATORY: ADMIN ---
 
@@ -68,6 +101,7 @@ def create_user():
          return jsonify({'error': 'Invalid role'}), 400
 
     new_user = User(
+        id=str(uuid.uuid4()),
         email=data['email'],
         first_name=data.get('firstName'),
         last_name=data.get('lastName'),
@@ -82,30 +116,30 @@ def create_user():
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
-@main_bp.route('/api/users/<int:id>', methods=['PUT'])
-@jwt_required() # Zabezpieczamy, choć logika pozwala każdemu edytować (do poprawy w przyszłości na RBAC)!!!!!!!!!!!!!!!
-def update_user(id):
-    user = User.query.get_or_404(id)
-    data = request.get_json()
+# @main_bp.route('/api/users/<int:id>', methods=['PUT'])
+# @jwt_required() # Zabezpieczamy, choć logika pozwala każdemu edytować (do poprawy w przyszłości na RBAC)!!!!!!!!!!!!!!!
+# def update_user(id):
+#     user = User.query.get_or_404(id)
+#     data = request.get_json()
     
-    # Tutaj w przyszłości warto dodać sprawdzenie:!!!!!!
-    # czy current_user.id == id (czy edytuję samego siebie) LUB czy jestem adminem !!!!!
+#     # Tutaj w przyszłości warto dodać sprawdzenie:!!!!!!
+#     # czy current_user.id == id (czy edytuję samego siebie) LUB czy jestem adminem !!!!!
     
-    if 'firstName' in data:
-        user.first_name = data['firstName']
-    if 'lastName' in data:
-        user.last_name = data['lastName']
+#     if 'firstName' in data:
+#         user.first_name = data['firstName']
+#     if 'lastName' in data:
+#         user.last_name = data['lastName']
         
-    db.session.commit()
-    return jsonify(user.to_dict())
+#     db.session.commit()
+#     return jsonify(user.to_dict())
 
-@main_bp.route('/api/users/<int:id>', methods=['DELETE'])
-@admin_required()
-def delete_user(id):
-    user = User.query.get_or_404(id)
-    db.session.delete(user)
-    db.session.commit()
-    return '', 204
+# @main_bp.route('/api/users/<int:id>', methods=['DELETE'])
+# @admin_required()
+# def delete_user(id):
+#     user = User.query.get_or_404(id)
+#     db.session.delete(user)
+#     db.session.commit()
+#     return '', 204
 
 # --- NOWE ENDPOINTY: WIZYTY ---
 

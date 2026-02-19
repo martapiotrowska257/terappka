@@ -9,11 +9,13 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "date-fns": "^4.1.0",
     "formik": "^2.4.9",
     "keycloak-js": "^26.2.2",
     "next": "^16.1.6",
     "next-auth": "^4.24.13",
     "react": "19.2.0",
+    "react-big-calendar": "^1.19.4",
     "react-dom": "19.2.0",
     "yup": "^1.7.1"
   },
@@ -21,6 +23,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
+    "@types/react-big-calendar": "^1.16.3",
     "@types/react-dom": "^19",
     "baseline-browser-mapping": "^2.9.14",
     "eslint": "^9",

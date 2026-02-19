@@ -45,6 +45,28 @@ services:
       timeout: 20s
       retries: 10
 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: terappka_backend
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: terappka
+      KEYCLOAK_CERTS_URL: http://keycloak:8080/realms/terappka/protocol/openid-connect/certs
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-MartaMaMałeJajka123}
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    networks:
+      - terappka_net
+
   # frontend:
   #     build:
   #       context: ./frontend/terappka-app 
