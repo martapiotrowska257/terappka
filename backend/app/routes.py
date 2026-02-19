@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from functools import wraps
 from datetime import datetime
 from . import db
@@ -6,6 +6,7 @@ from .models import User, Appointment
 
 from .auth import jwt_required
 import uuid
+from sqlalchemy.exc import IntegrityError
 
 main_bp = Blueprint('main', __name__)
 
@@ -43,8 +44,12 @@ def get_current_user_from_token():
             role=user_role 
         )
         db.session.add(user)
-        db.session.commit()
-
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            user = User.query.get(keycloak_id)
+            
     return user
 
 # --- DEKORATORY: ADMIN ---
