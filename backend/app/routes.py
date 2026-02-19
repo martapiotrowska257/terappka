@@ -5,6 +5,7 @@ from . import db
 from .models import User, Appointment
 
 from .auth import jwt_required
+import uuid
 
 main_bp = Blueprint('main', __name__)
 
@@ -12,16 +13,39 @@ main_bp = Blueprint('main', __name__)
 
 def get_current_user_from_token():
     claims = getattr(g, 'jwt_payload', None)
-
     if not claims:
         return None
-        
+ 
+    # Keycloak ID (sub) jest unikalnym identyfikatorem, lepiej używać go niż emaila jako ID
+    keycloak_id = claims.get('sub') 
     email = claims.get('email')
 
-    if not email:
-        return None
+    # 1. Szukamy użytkownika w naszej bazie
+    user = User.query.get(keycloak_id)
 
-    return User.query.filter_by(email=email).first()
+    # 2. Jeśli nie ma - tworzymy go automatycznie (JIT)
+    if not user:
+        # Logika wyciągania roli z tokena Keycloak
+        # Keycloak zazwyczaj trzyma role w: realm_access -> roles
+        realm_roles = claims.get('realm_access', {}).get('roles', [])
+        
+        user_role = User.ROLE_PATIENT
+        if 'admin' in realm_roles:       # Sprawdź nazwę roli jaką masz w Keycloak
+            user_role = User.ROLE_ADMIN
+        elif 'therapist' in realm_roles: # Sprawdź nazwę roli jaką masz w Keycloak
+            user_role = User.ROLE_THERAPIST
+
+        user = User(
+            id=keycloak_id, 
+            email=email,
+            first_name=claims.get('given_name', ''),
+            last_name=claims.get('family_name', ''),
+            role=user_role 
+        )
+        db.session.add(user)
+        db.session.commit()
+
+    return user
 
 # --- DEKORATORY: ADMIN ---
 
@@ -72,6 +96,7 @@ def create_user():
          return jsonify({'error': 'Invalid role'}), 400
 
     new_user = User(
+        id=str(uuid.uuid4()),
         email=data['email'],
         first_name=data.get('firstName'),
         last_name=data.get('lastName'),
