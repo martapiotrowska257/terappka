@@ -1,22 +1,26 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt
 from functools import wraps
 from datetime import datetime
 from . import db
 from .models import User, Appointment
+
+from .auth import jwt_required
 
 main_bp = Blueprint('main', __name__)
 
 # --- POMOCNICZE FUNKCJE ---
 
 def get_current_user_from_token():
-    claims = get_jwt()
+    claims = getattr(g, 'jwt_payload', None)
 
-    email = claims.get('email') 
-    
-    if not email:
+    if not claims:
         return None
         
+    email = claims.get('email')
+
+    if not email:
+        return None
+
     return User.query.filter_by(email=email).first()
 
 # --- DEKORATORY: ADMIN ---
@@ -82,30 +86,30 @@ def create_user():
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
-@main_bp.route('/api/users/<int:id>', methods=['PUT'])
-@jwt_required() # Zabezpieczamy, choć logika pozwala każdemu edytować (do poprawy w przyszłości na RBAC)!!!!!!!!!!!!!!!
-def update_user(id):
-    user = User.query.get_or_404(id)
-    data = request.get_json()
+# @main_bp.route('/api/users/<int:id>', methods=['PUT'])
+# @jwt_required() # Zabezpieczamy, choć logika pozwala każdemu edytować (do poprawy w przyszłości na RBAC)!!!!!!!!!!!!!!!
+# def update_user(id):
+#     user = User.query.get_or_404(id)
+#     data = request.get_json()
     
-    # Tutaj w przyszłości warto dodać sprawdzenie:!!!!!!
-    # czy current_user.id == id (czy edytuję samego siebie) LUB czy jestem adminem !!!!!
+#     # Tutaj w przyszłości warto dodać sprawdzenie:!!!!!!
+#     # czy current_user.id == id (czy edytuję samego siebie) LUB czy jestem adminem !!!!!
     
-    if 'firstName' in data:
-        user.first_name = data['firstName']
-    if 'lastName' in data:
-        user.last_name = data['lastName']
+#     if 'firstName' in data:
+#         user.first_name = data['firstName']
+#     if 'lastName' in data:
+#         user.last_name = data['lastName']
         
-    db.session.commit()
-    return jsonify(user.to_dict())
+#     db.session.commit()
+#     return jsonify(user.to_dict())
 
-@main_bp.route('/api/users/<int:id>', methods=['DELETE'])
-@admin_required()
-def delete_user(id):
-    user = User.query.get_or_404(id)
-    db.session.delete(user)
-    db.session.commit()
-    return '', 204
+# @main_bp.route('/api/users/<int:id>', methods=['DELETE'])
+# @admin_required()
+# def delete_user(id):
+#     user = User.query.get_or_404(id)
+#     db.session.delete(user)
+#     db.session.commit()
+#     return '', 204
 
 # --- NOWE ENDPOINTY: WIZYTY ---
 
