@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
     try {
         // Dodaliśmy pole "role" z formularza
-        const { email, password, name, role } = await request.json();
+        const { email, password, firstName, lastName, role } = await request.json();
 
         // 1. Pobierz token administratora
         const tokenResponse = await fetch(`${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`, {
@@ -22,10 +22,6 @@ export async function POST(request: Request) {
         const adminToken = tokenData.access_token;
         const adminUrl = process.env.KEYCLOAK_ISSUER?.replace("/realms/", "/admin/realms/");
 
-        // 2. Utwórz użytkownika
-        const [firstName, ...lastNameParts] = (name || "").split(" ");
-        const lastName = lastNameParts.join(" ");
-
         const createUserResponse = await fetch(`${adminUrl}/users`, {
             method: "POST",
             headers: {
@@ -37,6 +33,7 @@ export async function POST(request: Request) {
                 email: email,
                 firstName: firstName,
                 lastName: lastName,
+                emailVerified: true,
                 enabled: true,
                 credentials: [{ type: "password", value: password, temporary: false }],
             }),
