@@ -20,11 +20,11 @@ export default function LoginForm() {
             confirmPassword: Yup.string()
                 .oneOf([Yup.ref("password")], "Hasła muszą być identyczne")
                 .required("Potwierdź hasło"),
+            role: Yup.string().oneOf(["patient", "therapist"]).required("Wybierz rolę"),
         }),
     });
 
     return (
-        // Usunięto fixed inset-0 i tło modala. Zostawiamy sam biały kontener.
         <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-2xl">
             <h2 className="mb-2 text-2xl font-bold text-center text-gray-800">
                 {isRegister ? "Załóż konto" : "Zaloguj się"}
@@ -38,7 +38,7 @@ export default function LoginForm() {
                         setIsRegister(!isRegister);
                         setError("");
                     }}
-                    className="text-blue-600 font-medium hover:underline"
+                    className="text-emerald-600 font-medium hover:underline"
                 >
                     {isRegister ? "Zaloguj się" : "Zarejestruj się"}
                 </button>
@@ -51,7 +51,8 @@ export default function LoginForm() {
             )}
 
             <Formik
-                initialValues={{ email: "", password: "", name: "", confirmPassword: "" }}
+                // Dodajemy 'role' ze startową wartością 'patient'
+                initialValues={{ email: "", password: "", name: "", confirmPassword: "", role: "patient" }}
                 validationSchema={Schema}
                 onSubmit={async (values, { setSubmitting }) => {
                     setError("");
@@ -65,6 +66,7 @@ export default function LoginForm() {
                                     email: values.email,
                                     password: values.password,
                                     name: values.name,
+                                    role: values.role, // <--- Przesyłamy wybraną rolę
                                 }),
                             });
                             
@@ -79,8 +81,7 @@ export default function LoginForm() {
 
                             if (loginRes?.error) throw new Error("Konto utworzone, ale błąd logowania.");
                             
-                            // Przekierowanie na stronę główną po sukcesie
-                            router.push("/");
+                            router.push("/router-roli");
                             router.refresh();
 
                         } catch (err: any) {
@@ -96,40 +97,71 @@ export default function LoginForm() {
                         if (result?.error) {
                             setError("Nieprawidłowy login lub hasło");
                         } else {
-                            // Przekierowanie na stronę główną po zalogowaniu
-                            router.push("/");
+                            router.push("/router-roli");
                             router.refresh();
                         }
                     }
                     setSubmitting(false);
                 }}
             >
-                {({ isSubmitting }) => (
+                {({ isSubmitting, values, setFieldValue }) => (
                     <Form className="flex flex-col gap-4">
+                        
+                        {/* WYBÓR ROLI (Tylko rejestracja) */}
+                        {isRegister && (
+                            <div className="mb-2">
+                                <label className="text-sm font-medium text-gray-700 block mb-2">Chcę dołączyć jako:</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFieldValue("role", "patient")}
+                                        className={`py-2 px-4 rounded-lg border-2 text-sm font-medium transition-colors ${
+                                            values.role === "patient" 
+                                            ? "border-emerald-500 bg-emerald-50 text-emerald-700" 
+                                            : "border-gray-200 text-gray-500 hover:border-emerald-200"
+                                        }`}
+                                    >
+                                        🧑‍⚕️ Pacjent
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFieldValue("role", "therapist")}
+                                        className={`py-2 px-4 rounded-lg border-2 text-sm font-medium transition-colors ${
+                                            values.role === "therapist" 
+                                            ? "border-emerald-500 bg-emerald-50 text-emerald-700" 
+                                            : "border-gray-200 text-gray-500 hover:border-emerald-200"
+                                        }`}
+                                    >
+                                        🛋️ Terapeuta
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {isRegister && (
                             <div>
                                 <label className="text-sm font-medium text-gray-700">Imię i nazwisko</label>
-                                <Field type="text" name="name" className="w-full px-4 py-2 border rounded-lg" />
+                                <Field type="text" name="name" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
                                 <ErrorMessage name="name" component="div" className="text-xs text-red-500 mt-1" />
                             </div>
                         )}
 
                         <div>
                             <label className="text-sm font-medium text-gray-700">E-mail</label>
-                            <Field type="email" name="email" className="w-full px-4 py-2 border rounded-lg" />
+                            <Field type="email" name="email" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
                             <ErrorMessage name="email" component="div" className="text-xs text-red-500 mt-1" />
                         </div>
 
                         <div>
                             <label className="text-sm font-medium text-gray-700">Hasło</label>
-                            <Field type="password" name="password" className="w-full px-4 py-2 border rounded-lg" />
+                            <Field type="password" name="password" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
                             <ErrorMessage name="password" component="div" className="text-xs text-red-500 mt-1" />
                         </div>
 
                         {isRegister && (
                             <div>
                                 <label className="text-sm font-medium text-gray-700">Potwierdź hasło</label>
-                                <Field type="password" name="confirmPassword" className="w-full px-4 py-2 border rounded-lg" />
+                                <Field type="password" name="confirmPassword" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
                                 <ErrorMessage name="confirmPassword" component="div" className="text-xs text-red-500 mt-1" />
                             </div>
                         )}
@@ -137,9 +169,9 @@ export default function LoginForm() {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full py-2 mt-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-md"
+                            className="w-full py-2.5 mt-4 text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-md font-medium"
                         >
-                            {isSubmitting ? "Przetwarzanie..." : (isRegister ? "Zarejestruj się" : "Zaloguj się")}
+                            {isSubmitting ? "Przetwarzanie..." : (isRegister ? "Utwórz konto" : "Zaloguj się")}
                         </button>
                     </Form>
                 )}
