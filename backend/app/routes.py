@@ -72,10 +72,13 @@ def admin_required():
 # --- ENDPOINTY UŻYTKOWNIKÓW (STARE - POZOSTAWIONE) ---
 
 @main_bp.route('/api/users', methods=['GET'])
-@admin_required()
+@jwt_required()
 def get_users():
-    users = User.query.all()
-    return jsonify([user.to_dict() for user in users])
+    current_user = get_current_user_from_token()
+    if current_user.role not in [User.ROLE_ADMIN, User.ROLE_THERAPIST]:
+        return jsonify({'error': 'Brak uprawnień'}), 403
+    users = User.query.filter_by(role=User.ROLE_PATIENT).all()
+    return jsonify([u.to_dict() for u in users])
 
 @main_bp.route('/api/users/<int:id>', methods=['GET'])
 @admin_required()
@@ -151,18 +154,29 @@ def create_appointment():
         return jsonify({'error': 'User not found in database. Please register first.'}), 404
 
     data = request.get_json()
-    
-    if 'therapistId' not in data or 'dateTime' not in data:
-        return jsonify({'error': 'Missing therapistId or dateTime'}), 400
+
+    if 'dateTime' not in data:
+        return jsonify({'error': 'Missing dateTime'}), 400
 
     try:
         dt = datetime.fromisoformat(data['dateTime'].replace('Z', '+00:00'))
     except ValueError:
         return jsonify({'error': 'Invalid date format'}), 400
 
+    if current_user.role == User.ROLE_THERAPIST:
+        if 'patientId' not in data:
+            return jsonify({'error': 'Missing patientId'}), 400
+        patient_id = data['patientId']
+        therapist_id = current_user.id
+    else: # Domyślnie pacjent
+        if 'therapistId' not in data:
+            return jsonify({'error': 'Missing therapistId'}), 400
+        patient_id = current_user.id
+        therapist_id = data['therapistId']
+
     new_appointment = Appointment(
-        patient_id=current_user.id,
-        therapist_id=data['therapistId'],
+        patient_id=patient_id,
+        therapist_id=therapist_id,
         date_time=dt,
         description=data.get('description', ''),
         status=Appointment.STATUS_SCHEDULED

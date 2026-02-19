@@ -16,7 +16,8 @@ export default function LoginForm() {
         email: Yup.string().email("Nieprawidłowy adres e-mail").required("Wymagane"),
         password: Yup.string().min(4, "Min. 4 znaki").required("Wymagane"),
         ...(isRegister && {
-            name: Yup.string().required("Podaj imię i nazwisko"),
+            firstName: Yup.string().required("Podaj imię"),
+            lastName: Yup.string().required("Podaj nazwisko"),
             confirmPassword: Yup.string()
                 .oneOf([Yup.ref("password")], "Hasła muszą być identyczne")
                 .required("Potwierdź hasło"),
@@ -51,8 +52,7 @@ export default function LoginForm() {
             )}
 
             <Formik
-                // Dodajemy 'role' ze startową wartością 'patient'
-                initialValues={{ email: "", password: "", name: "", confirmPassword: "", role: "patient" }}
+                initialValues={{ email: "", password: "", firstName: "", lastName: "", confirmPassword: "", role: "patient" }}
                 validationSchema={Schema}
                 onSubmit={async (values, { setSubmitting }) => {
                     setError("");
@@ -65,8 +65,9 @@ export default function LoginForm() {
                                 body: JSON.stringify({
                                     email: values.email,
                                     password: values.password,
-                                    name: values.name,
-                                    role: values.role, // <--- Przesyłamy wybraną rolę
+                                    firstName: values.firstName,
+                                    lastName: values.lastName,
+                                    role: values.role,
                                 }),
                             });
                             
@@ -139,10 +140,17 @@ export default function LoginForm() {
                         )}
 
                         {isRegister && (
-                            <div>
-                                <label className="text-sm font-medium text-gray-700">Imię i nazwisko</label>
-                                <Field type="text" name="name" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
-                                <ErrorMessage name="name" component="div" className="text-xs text-red-500 mt-1" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700">Imię</label>
+                                    <Field type="text" name="firstName" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
+                                    <ErrorMessage name="firstName" component="div" className="text-xs text-red-500 mt-1" />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700">Nazwisko</label>
+                                    <Field type="text" name="lastName" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
+                                    <ErrorMessage name="lastName" component="div" className="text-xs text-red-500 mt-1" />
+                                </div>
                             </div>
                         )}
 
