@@ -8,7 +8,7 @@ class User(db.Model):
     ROLE_PATIENT = 'PATIENT'
     ROLE_THERAPIST = 'THERAPIST'
 
-    id = db.Column(db.String(36), primary_key=True, autoincrement=True)
+    id = db.Column(db.String(36), primary_key=True)
     email = db.Column(db.String(255), unique=True, nullable=False)
     first_name = db.Column(db.String(255))
     last_name = db.Column(db.String(255))
@@ -28,7 +28,8 @@ class User(db.Model):
 class Appointment(db.Model):
     __tablename__ = 'appointments'
 
-    #dla foki 
+    #dla foki
+    STATUS_AVAILABLE = 'AVAILABLE' #wolny termin
     STATUS_SCHEDULED = 'SCHEDULED' #zaplanowna
     STATUS_CONFIRMED = 'CONFIRMED' #potwerdzona przez terapeutę
     STATUS_COMPLETED = 'COMPLETED' #zakończona
@@ -36,8 +37,8 @@ class Appointment(db.Model):
     STATUS_NO_SHOW = 'NO_SHOW' #pacjent nie przyszedł i nie odwołał
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    therapist_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    patient_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
+    therapist_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     
     date_time = db.Column(db.DateTime, nullable=False)
     description = db.Column(db.Text, nullable=True) 
@@ -53,7 +54,7 @@ class Appointment(db.Model):
         return {
             'id': self.id,
             'patientId': self.patient_id,
-            'patientName': f"{self.patient.first_name} {self.patient.last_name}" if self.patient else "Unknown",
+            'patientName': f"{self.patient.first_name} {self.patient.last_name}" if self.patient else None,
             'therapistId': self.therapist_id,
             'therapistName': f"{self.therapist.first_name} {self.therapist.last_name}" if self.therapist else "Unknown",
             'dateTime': self.date_time.isoformat(),
