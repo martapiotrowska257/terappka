@@ -3,10 +3,10 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
     try {
-        const { email, password, name } = await request.json();
+        // Dodaliśmy pole "role" z formularza
+        const { email, password, name, role } = await request.json();
 
-        // 1. Pobierz token administratora (Service Account)
-        // Używamy grant_type=client_credentials aby działać jako "system"
+        // 1. Pobierz token administratora
         const tokenResponse = await fetch(`${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -18,19 +18,11 @@ export async function POST(request: Request) {
         });
 
         const tokenData = await tokenResponse.json();
-        if (!tokenResponse.ok) {
-            console.error("Błąd pobierania tokena admina:", tokenData);
-            return NextResponse.json({ error: "Błąd konfiguracji serwera" }, { status: 500 });
-        }
-
+        if (!tokenResponse.ok) throw new Error("Błąd pobierania tokena admina");
         const adminToken = tokenData.access_token;
-
-        // 2. Utwórz użytkownika w Keycloak
-        // URL Admina zazwyczaj różni się od Issuera (/realms/ vs /admin/realms/)
-        // Zakładamy standardową strukturę URL Keycloaka
         const adminUrl = process.env.KEYCLOAK_ISSUER?.replace("/realms/", "/admin/realms/");
-        
-        // Rozbijamy imię i nazwisko (opcjonalne)
+
+        // 2. Utwórz użytkownika
         const [firstName, ...lastNameParts] = (name || "").split(" ");
         const lastName = lastNameParts.join(" ");
 
@@ -41,36 +33,61 @@ export async function POST(request: Request) {
                 Authorization: `Bearer ${adminToken}`,
             },
             body: JSON.stringify({
-                username: email, // W Keycloak email często jest username'm
+                username: email,
                 email: email,
                 firstName: firstName,
                 lastName: lastName,
-                enabled: true, // Ważne: użytkownik od razu aktywny
-                emailVerified: false, // Możesz zmienić na true, jeśli nie wymagasz weryfikacji
-                credentials: [
-                    {
-                        type: "password",
-                        value: password,
-                        temporary: false, // Ważne: hasło jest stałe, nie tymczasowe
-                    },
-                ],
+                enabled: true,
+                credentials: [{ type: "password", value: password, temporary: false }],
             }),
         });
 
         if (!createUserResponse.ok) {
-            const errorData = await createUserResponse.json().catch(() => null);
-            console.error("Błąd tworzenia użytkownika:", createUserResponse.status, errorData);
-            
             if (createUserResponse.status === 409) {
                 return NextResponse.json({ error: "Użytkownik o takim adresie email już istnieje." }, { status: 409 });
             }
-            return NextResponse.json({ error: "Nie udało się utworzyć użytkownika." }, { status: 500 });
+            throw new Error("Nie udało się utworzyć użytkownika.");
+        }
+
+        // --- NOWA CZĘŚĆ: PRZYPISYWANIE ROLI ---
+
+        // Mapowanie z frontendu na nazwę roli w Keycloak
+        const keycloakRoleName = role === "therapist" ? "therapist" : "user";
+
+        // 3. Pobierz utworzonego użytkownika (aby uzyskać jego ID)
+        const usersResponse = await fetch(`${adminUrl}/users?email=${email}&exact=true`, {
+            headers: { Authorization: `Bearer ${adminToken}` }
+        });
+        const users = await usersResponse.json();
+        const userId = users[0]?.id;
+
+        if (userId) {
+            // 4. Pobierz szczegóły roli (aby uzyskać jej ID)
+            const roleResponse = await fetch(`${adminUrl}/roles/${keycloakRoleName}`, {
+                headers: { Authorization: `Bearer ${adminToken}` }
+            });
+            
+            if (roleResponse.ok) {
+                const roleData = await roleResponse.json();
+
+                // 5. Przypisz rolę do użytkownika
+                await fetch(`${adminUrl}/users/${userId}/role-mappings/realm`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${adminToken}`,
+                    },
+                    body: JSON.stringify([roleData]), // Keycloak wymaga tablicy ról
+                });
+            } else {
+                console.warn(`Nie znaleziono roli ${keycloakRoleName} w Keycloak.`);
+            }
         }
 
         return NextResponse.json({ message: "Użytkownik utworzony pomyślnie" }, { status: 201 });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Register Error:", error);
-        return NextResponse.json({ error: "Wystąpił błąd serwera." }, { status: 500 });
+        return NextResponse.json({ error: error.message || "Wystąpił błąd serwera." }, { status: 500 });
     }
 }
