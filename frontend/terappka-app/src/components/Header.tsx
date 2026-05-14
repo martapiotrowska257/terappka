@@ -53,8 +53,6 @@ export default function Header() {
               </Link>
             </>
           )}
-
-          {/* Komponent z danymi usera i przyciskiem Log/Wyloguj */}
         </nav>
       </div>
     </header>
