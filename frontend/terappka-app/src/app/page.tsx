@@ -1,19 +1,37 @@
 import LoginButton from "../components/LoginButton";
+import Image from "next/image";
+import RandomQuote from "../components/RandomQuote";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-50">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4">
-          Witaj w TerAppka
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <LoginButton />
+    <main className="relative flex min-h-screen flex-col lg:flex-row bg-gray-50 overflow-hidden">
+      {/* Lewa strona - Zmieniono justify-center na justify-start oraz dodano pt-32 */}
+      <div className="relative z-10 flex w-full lg:w-[50%] flex-col items-center justify-start p-8 pt-24 lg:pt-48 lg:p-24 min-h-screen lg:min-h-0">
+        <div className="text-center w-full">
+          {/* Napis "Terappka" teraz znacznie wyżej */}
+          <h1 className="text-5xl font-bold mb-6 text-gray-800">
+            Witaj w Terappka
+          </h1>
+
+          {/* Cytat pod napisem */}
+          <RandomQuote />
+
+          {/* Przycisk logowania pod cytatem */}
+          <div className="flex justify-center mt-12">
+            <LoginButton />
+          </div>
         </div>
       </div>
-      <div className="mt-10 text-center">
-        <h1 className="text-4xl font-bold mb-4 text-gray-800">System Rejestracji</h1>
-        <p className="text-gray-600 mb-8">Zaloguj się, aby uzyskać dostęp do panelu</p>
+
+      {/* Prawa strona - Kontener przycięty do trapezu */}
+      <div className="relative w-full h-[300px] lg:absolute lg:inset-y-0 lg:right-0 lg:h-full lg:w-full lg:[clip-path:polygon(55%_0,100%_0,100%_100%,35%_100%)] bg-gray-200">
+        <Image
+          src="/images/main_hands.jpg"
+          alt="Tło logowania"
+          fill
+          className="object-cover translate-x-75"
+          priority
+        />
       </div>
     </main>
   );
