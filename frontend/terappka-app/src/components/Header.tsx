@@ -46,7 +46,7 @@ export default function Header() {
           ) : (
             <>
               <Link
-                href={"/contact-us"}
+                href={"/kontakt"}
                 className="text-white font-bold tracking-wide hover:text-emerald-50 transition-colors"
               >
                 Kontakt
