@@ -53,6 +53,7 @@ export default function Header() {
               </Link>
             </>
           )}
+          <LoginButton />
         </nav>
       </div>
     </header>
