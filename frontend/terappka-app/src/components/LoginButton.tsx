@@ -44,7 +44,7 @@ export default function LoginButton() {
   // 3. Widok dla NIEZALOGOWANEGO użytkownika
   return (
     <Link
-      href="/signIn"
+      href="/login"
       className="px-6 py-2 text-sm font-medium text-emerald-700 bg-white rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 focus:ring-offset-emerald-500 shadow-sm transition-colors"
     >
       Zaloguj się
