@@ -20,7 +20,7 @@ async function getAppointments(token: string): Promise<Appointment[]> {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       cache: "no-store",
     });
@@ -133,36 +133,6 @@ export default async function PatientDashboard() {
               </div>
             )}
           </div>
-          {/* WIDŻET 1: Najbliższa wizyta */}
-          <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800">
-                Twoja najbliższa wizyta
-              </h2>
-              <span className="text-sm font-medium text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-                Nadchodząca
-              </span>
-            </div>
-
-            {/* Placeholder wizyty - później zasilisz to danymi z bazy */}
-            <div className="flex items-start gap-4 p-4 border border-gray-100 rounded-xl bg-gray-50/50">
-              <div className="flex flex-col items-center justify-center bg-white border border-gray-200 rounded-lg w-16 h-16 shrink-0">
-                <span className="text-sm font-bold text-red-500">PAŹ</span>
-                <span className="text-xl font-black text-gray-800">24</span>
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-800">
-                  Konsultacja psychologiczna (Online)
-                </h3>
-                <p className="text-gray-500 text-sm mt-1">
-                  z mgr Anna Kowalska
-                </p>
-                <p className="text-gray-600 font-medium mt-2">
-                  ⏱ 15:30 - 16:20
-                </p>
-              </div>
-            </div>
-          </div>
 
           {/* WIDŻET 2: Szybkie linki / Twój terapeuta */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4">
@@ -186,16 +156,6 @@ export default async function PatientDashboard() {
             <button className="w-full py-2.5 text-sm font-medium text-emerald-700 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors">
               Przejdź do notatek
             </button>
-          </div>
-
-          {/* WIDŻET 3: Historia */}
-          <div className="md:col-span-3 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">
-              Historia aktywności
-            </h2>
-            <div className="text-center py-8 text-gray-500">
-              <p>Nie masz jeszcze ukończonych wizyt.</p>
-            </div>
           </div>
         </div>
       </div>
