@@ -3,7 +3,7 @@ import RandomQuote from "../components/RandomQuote";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-6 md:p-24">
+    <div className="flex flex-1 flex-col items-center justify-center bg-gray-50 p-6 md:p-24 w-full">
       <div className="text-center w-full max-w-2xl">
         {/* Główny napis na środku */}
         <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gray-800">
@@ -18,6 +18,6 @@ export default function Home() {
           <LoginButton />
         </div>
       </div>
-    </main>
+    </div>
   );
 }
