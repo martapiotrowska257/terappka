@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, g
 from functools import wraps
 from datetime import datetime
 from . import db
-from .models import User, Appointment
+from .models import User, Appointment, Diary
 
 from .auth import jwt_required
 import uuid
@@ -275,3 +275,78 @@ def reschedule_appointment(id):
             return jsonify({'error': 'Błędny format daty'}), 400
 
     return jsonify({'error': 'Brak nowej daty'}), 400
+
+# --- ENDPOINTY PAMIĘTNIKA (DIARY) ---
+
+DIARY_QUESTIONS = [
+    "Jak mija Ci dzisiejszy dzień?",
+    "Kto sprawił, że poczułeś/aś się ostatnio zmotywowany/a?",
+    "Co dobrego Cię dzisiaj spotkało, nawet jeśli to była drobnostka?",
+    "Za co jesteś dzisiaj wdzięczny/a?",
+    "Jakie emocje towarzyszyły Ci przez większość dzisiejszego dnia i dlaczego?",
+    "Gdybyś mógł/mogła powiedzieć sobie z wczoraj jedną rzecz, co by to było?",
+    "Z jakim wyzwaniem udało Ci się ostatnio zmierzyć?",
+    "Co zrobiłeś/aś dzisiaj tylko dla siebie?"
+]
+
+@main_bp.route('/api/diary/question', methods=['GET'])
+@jwt_required()
+def get_daily_question():
+    current_user = get_current_user_from_token()
+    if not current_user:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Generujemy stałe pytanie na dany dzień w roku, 
+    # żeby pacjent widział to samo pytanie, jeśli odświeży stronę.
+    day_of_year = datetime.utcnow().timetuple().tm_yday
+    question_index = day_of_year % len(DIARY_QUESTIONS)
+    
+    return jsonify({'question': DIARY_QUESTIONS[question_index]})
+
+
+@main_bp.route('/api/diary', methods=['POST'])
+@jwt_required()
+def create_diary_entry():
+    current_user = get_current_user_from_token()
+    if not current_user:
+        return jsonify({'error': 'User not found'}), 404
+        
+    # Pamiętnik jest tylko dla pacjentów
+    if current_user.role != User.ROLE_PATIENT:
+        return jsonify({'error': 'Tylko pacjenci mogą prowadzić pamiętnik'}), 403
+
+    data = request.get_json()
+    question = data.get('question')
+    content = data.get('content')
+
+    if not question or not content:
+        return jsonify({'error': 'Brakuje pytania lub treści wpisu'}), 400
+
+    new_entry = Diary(
+        patient_id=current_user.id,
+        question=question,
+        content=content
+    )
+
+    db.session.add(new_entry)
+    db.session.commit()
+
+    return jsonify(new_entry.to_dict()), 201
+
+
+@main_bp.route('/api/diary', methods=['GET'])
+@jwt_required()
+def get_diary_entries():
+    current_user = get_current_user_from_token()
+    if not current_user:
+        return jsonify({'error': 'User not found'}), 404
+        
+    if current_user.role != User.ROLE_PATIENT:
+        return jsonify({'error': 'Tylko pacjenci mają dostęp do pamiętnika'}), 403
+
+    # Pobieramy wpisy pacjenta posortowane od najnowszego
+    entries = Diary.query.filter_by(patient_id=current_user.id)\
+                         .order_by(Diary.created_at.desc())\
+                         .all()
+    
+    return jsonify([entry.to_dict() for entry in entries])
