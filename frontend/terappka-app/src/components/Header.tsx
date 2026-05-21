@@ -41,7 +41,6 @@ export default function Header() {
               >
                 Mój Panel
               </Link>
-              <LoginButton />
             </>
           ) : (
             <>

@@ -11,20 +11,17 @@ export const metadata: Metadata = {
   description: "System komunikacji z terapeutą",
 };
 
-export default function RootLayout({ 
-  children
- }: { 
-  children: React.ReactNode
- }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="pl">
-      <body className={inter.className}>
+      <body className={`${inter.className} flex flex-col min-h-screen`}>
         <SessionProviderWrapper>
           <Header />
-          <main>
-            {children}
-          </main>
-          
+          <main className="flex flex-1 flex-col">{children}</main>
         </SessionProviderWrapper>
       </body>
     </html>
