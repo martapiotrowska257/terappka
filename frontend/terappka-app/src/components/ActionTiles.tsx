@@ -4,11 +4,11 @@ import Link from "next/link";
 
 export default function ActionTiles() {
   const tiles = [
-    { id: 1, label: "Ćwiczenia na oddychanie", href: "/pacjent/dokumenty" },
+    { id: 1, label: "Ćwiczenia na oddychanie", href: "/pacjent/oddychanie" },
     {
       id: 2,
       label: "Nazwij swoje emocje",
-      href: "/pacjent/nazwij-swoje-emocje",
+      href: "/pacjent/emocje",
     },
     {
       id: 3,
