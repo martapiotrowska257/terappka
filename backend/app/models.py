@@ -12,8 +12,6 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False)
     first_name = db.Column(db.String(255))
     last_name = db.Column(db.String(255))
-    # password = db.Column(db.String(255), nullable=False)
-    
     role = db.Column(db.String(50), default=ROLE_PATIENT)
 
     def to_dict(self):
@@ -28,7 +26,6 @@ class User(db.Model):
 class Appointment(db.Model):
     __tablename__ = 'appointments'
 
-    #dla foki
     STATUS_AVAILABLE = 'AVAILABLE' #wolny termin
     STATUS_SCHEDULED = 'SCHEDULED' #zaplanowna
     STATUS_CONFIRMED = 'CONFIRMED' #potwerdzona przez terapeutę
@@ -62,4 +59,27 @@ class Appointment(db.Model):
             'description': self.description,
             'cancellationReason': self.cancellation_reason,
             'outcomeNotes': self.outcome_notes
+        }
+    
+
+class Diary(db.Model):
+    __tablename__ = 'diaries'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    patient_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    
+    question = db.Column(db.String(500), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    patient = db.relationship('User', foreign_keys=[patient_id])
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'patientId': self.patient_id,
+            'patientName': f"{self.patient.first_name} {self.patient.last_name}" if self.patient else None,
+            'question': self.question,
+            'content': self.content,
+            'createdAt': self.created_at.isoformat() if self.created_at else None
         }
