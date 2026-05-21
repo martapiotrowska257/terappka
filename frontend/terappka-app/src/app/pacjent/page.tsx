@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import ActionTiles from "@/src/components/ActionTiles";
 
 interface Appointment {
   id: number;
@@ -13,14 +14,14 @@ interface Appointment {
 }
 
 async function getAppointments(token: string): Promise<Appointment[]> {
-  const apiUrl = process.env.API_URL || "http:127.0.0.1:5000";
+  const apiUrl = process.env.API_URL || "http://127.0.0.1:5000";
 
   try {
     const res = await fetch(`${apiUrl}/api/appointments`, {
       method: "GET",
       headers: {
+        ["Authorization"]: `Bearer ${token}`,
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       cache: "no-store",
     });
@@ -158,6 +159,7 @@ export default async function PatientDashboard() {
             </button>
           </div>
         </div>
+        <ActionTiles />
       </div>
     </div>
   );
