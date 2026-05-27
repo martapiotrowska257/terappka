@@ -13,9 +13,9 @@ export default function ActionTiles() {
     {
       id: 3,
       label: "Pamiętnik",
-      href: "/pacjent/pamiętnik",
+      href: "/pacjent/pamietnik",
     },
-    { id: 4, label: "Kalendarz", href: "/pacjent/kaledarz" },
+    { id: 4, label: "Kalendarz", href: "/pacjent/kalendarz" },
     {
       id: 5,
       label: "Afirmacje",
