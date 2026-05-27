@@ -8,6 +8,10 @@ export default function PamietnikPage() {
   const [entry, setEntry] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [question, setQuestion] = useState("Ładowanie pytania...");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">(
+    "idle",
+  );
 
   const getPrevDay = (date: Date) => {
     const d = new Date(date);
@@ -34,32 +38,37 @@ export default function PamietnikPage() {
     });
   };
 
+  // 1. POBIERANIE PYTANIA (GET)
   useEffect(() => {
     const fetchQuestion = async () => {
-      // Zabezpieczenie: jeśli nie ma tokenu, nie robimy zapytania
       if (!session?.accessToken) return;
 
-      setQuestion("Ładowanie pytania..."); // Reset podczas zmiany daty
+      setQuestion("Ładowanie pytania...");
+      setSaveStatus("idle"); // Reset statusu zapisu przy zmianie dnia
 
       try {
-        // Opcjonalnie: Jeśli Twój backend potrafi przyjąć datę w parametrze,
-        // możesz ją dokleić, np.: ?date=${selectedDate.toISOString().split('T')[0]}
         const apiUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
-        const res = await fetch(`${apiUrl}/api/diary/question`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.accessToken}`,
+        // Przekazujemy datę do backendu, aby wiedział jakie pytanie zwrócić na dany dzień
+        const formattedDate = selectedDate.toISOString().split("T")[0];
+
+        const res = await fetch(
+          `${apiUrl}/api/diary/question?date=${formattedDate}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.accessToken}`,
+            },
           },
-        });
+        );
 
         if (res.ok) {
           const data = await res.json();
-          // Zakładamy, że backend zwraca { "question": "Treść pytania..." }
           setQuestion(data.question || "Brak pytania na ten dzień.");
+          // Opcjonalnie: jeśli backend zwraca też stary zapis pacjenta z tego dnia,
+          // możesz go tutaj ustawić: setEntry(data.existingEntry || "");
         } else {
-          console.error("Błąd pobierania pytania:", res.status);
           setQuestion("Nie udało się pobrać pytania na ten dzień.");
         }
       } catch (error) {
@@ -70,6 +79,53 @@ export default function PamietnikPage() {
 
     fetchQuestion();
   }, [selectedDate, session]);
+
+  // 2. WYSYŁANIE ZAPISU DO BAZY (POST)
+  const handleSaveEntry = async () => {
+    if (!session?.accessToken) {
+      alert("Musisz być zalogowany, aby zapisać wpis.");
+      return;
+    }
+
+    if (!entry.trim()) {
+      alert("Nie możesz zapisać pustego wpisu.");
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveStatus("idle");
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+
+      const res = await fetch(`${apiUrl}/api/diary`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.accessToken}`, // Nagłówek JWT
+        },
+        body: JSON.stringify({
+          question: question, // Dzisiejsze pytanie
+          content: entry, // Zapisana zawartość (textarea)
+          date: selectedDate.toISOString().split("T")[0], // Data wpisu w formacie YYYY-MM-DD
+        }),
+      });
+
+      if (res.ok) {
+        setSaveStatus("success");
+        // Ukryj komunikat sukcesu po 3 sekundach
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      } else {
+        console.error("Błąd zapisu pamiętnika:", res.status);
+        setSaveStatus("error");
+      }
+    } catch (error) {
+      console.error("Błąd połączenia z API (Zapis):", error);
+      setSaveStatus("error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const prevDate = getPrevDay(selectedDate);
   const nextDate = getNextDay(selectedDate);
@@ -138,7 +194,8 @@ export default function PamietnikPage() {
           <textarea
             value={entry}
             onChange={(e) => setEntry(e.target.value)}
-            className="flex-1 w-full resize-none bg-transparent font-serif text-gray-700 text-lg md:text-xl focus:outline-none focus:ring-0 p-0"
+            disabled={isSaving}
+            className="flex-1 w-full resize-none bg-transparent font-serif text-gray-700 text-lg md:text-xl focus:outline-none focus:ring-0 p-0 disabled:opacity-75"
             placeholder="Zacznij przelewać tutaj swoje myśli..."
             style={{
               backgroundImage:
@@ -148,9 +205,30 @@ export default function PamietnikPage() {
             }}
           ></textarea>
 
-          <div className="mt-8 flex justify-end">
-            <button className="bg-emerald-400 hover:bg-emerald-500 text-white font-serif px-8 py-3 rounded-md transition-colors shadow-md">
-              Zapisz wpis
+          <div className="mt-8 flex items-center justify-between">
+            <div className="font-serif text-sm">
+              {saveStatus === "success" && (
+                <span className="text-emerald-600 font-medium animate-pulse">
+                  ✓ Pomyślnie zapisano wpis!
+                </span>
+              )}
+              {saveStatus === "error" && (
+                <span className="text-red-500 font-medium">
+                  ✕ Wystąpił błąd podczas zapisu.
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={handleSaveEntry}
+              disabled={isSaving}
+              className={`font-serif px-8 py-3 rounded-md transition-all shadow-md text-white ${
+                isSaving
+                  ? "bg-emerald-300 cursor-not-allowed"
+                  : "bg-emerald-400 hover:bg-emerald-500 cursor-pointer"
+              }`}
+            >
+              {isSaving ? "Zapisywanie..." : "Zapisz wpis"}
             </button>
           </div>
         </div>
