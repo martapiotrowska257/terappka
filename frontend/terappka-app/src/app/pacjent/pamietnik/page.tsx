@@ -38,21 +38,19 @@ export default function PamietnikPage() {
     });
   };
 
-  // 1. POBIERANIE PYTANIA (GET)
   useEffect(() => {
-    const fetchQuestion = async () => {
+    const fetchData = async () => {
       if (!session?.accessToken) return;
 
       setQuestion("Ładowanie pytania...");
-      setSaveStatus("idle"); // Reset statusu zapisu przy zmianie dnia
+      setEntry("");
+      setSaveStatus("idle");
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+      const formattedDate = selectedDate.toISOString().split("T")[0];
 
       try {
-        const apiUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
-        // Przekazujemy datę do backendu, aby wiedział jakie pytanie zwrócić na dany dzień
-        const formattedDate = selectedDate.toISOString().split("T")[0];
-
-        const res = await fetch(
+        const resQuestion = await fetch(
           `${apiUrl}/api/diary/question?date=${formattedDate}`,
           {
             method: "GET",
@@ -63,24 +61,48 @@ export default function PamietnikPage() {
           },
         );
 
-        if (res.ok) {
-          const data = await res.json();
+        if (resQuestion.ok) {
+          const data = await resQuestion.json();
           setQuestion(data.question || "Brak pytania na ten dzień.");
-          // Opcjonalnie: jeśli backend zwraca też stary zapis pacjenta z tego dnia,
-          // możesz go tutaj ustawić: setEntry(data.existingEntry || "");
         } else {
           setQuestion("Nie udało się pobrać pytania na ten dzień.");
         }
       } catch (error) {
-        console.error("Błąd połączenia z API (Pytanie):", error);
+        console.error("Błąd pobierania pytania:", error);
         setQuestion("Błąd połączenia z serwerem.");
+      }
+
+      try {
+        const resEntry = await fetch(
+          `${apiUrl}/api/diary?date=${formattedDate}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.accessToken}`,
+            },
+          },
+        );
+
+        if (resEntry.ok) {
+          const data = await resEntry.json();
+          setEntry(data.content || "");
+        } else if (resEntry.status === 404) {
+          setEntry("");
+        } else {
+          console.error(
+            "Błąd pobierania wpisu pamiętnika, status:",
+            resEntry.status,
+          );
+        }
+      } catch (error) {
+        console.error("Błąd połączenia z API (Pobieranie wpisu):", error);
       }
     };
 
-    fetchQuestion();
+    fetchData();
   }, [selectedDate, session]);
 
-  // 2. WYSYŁANIE ZAPISU DO BAZY (POST)
   const handleSaveEntry = async () => {
     if (!session?.accessToken) {
       alert("Musisz być zalogowany, aby zapisać wpis.");
@@ -102,18 +124,17 @@ export default function PamietnikPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.accessToken}`, // Nagłówek JWT
+          Authorization: `Bearer ${session.accessToken}`,
         },
         body: JSON.stringify({
-          question: question, // Dzisiejsze pytanie
-          content: entry, // Zapisana zawartość (textarea)
-          date: selectedDate.toISOString().split("T")[0], // Data wpisu w formacie YYYY-MM-DD
+          question: question,
+          content: entry,
+          date: selectedDate.toISOString().split("T")[0],
         }),
       });
 
       if (res.ok) {
         setSaveStatus("success");
-        // Ukryj komunikat sukcesu po 3 sekundach
         setTimeout(() => setSaveStatus("idle"), 3000);
       } else {
         console.error("Błąd zapisu pamiętnika:", res.status);
@@ -133,7 +154,7 @@ export default function PamietnikPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 flex flex-col justify-center items-center">
-      {/* Pasek nawigacyjny pamiętnika (Nad okładką) */}
+      {/* Pasek nawigacyjny pamiętnika */}
       <div className="w-full max-w-3xl flex justify-center items-center gap-4 md:gap-12 mb-8 font-serif text-gray-500">
         <button
           onClick={() => setSelectedDate(prevDate)}
@@ -148,8 +169,7 @@ export default function PamietnikPage() {
           </span>
         </button>
 
-        {/* Aktualnie wybrany dzień (środek) */}
-        <div className="text-lg md:text-xl font-bold text-emerald-600 border-b border-emerald-600/30 px-4 pb-1 text-center min-w-[150px]">
+        <div className="text-lg md:text-xl font-bold text-emerald-800 border-b border-emerald-800/30 px-4 pb-1 text-center min-w-[150px]">
           {isCurrentDay ? "Dzisiaj" : formatDate(selectedDate)}
         </div>
 
