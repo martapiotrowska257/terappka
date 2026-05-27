@@ -46,40 +46,34 @@ export default function ScheduleCalendar({
 
   // Stylowanie poszczególnych "klocków" w kalendarzu na podstawie statusu
   const eventStyleGetter = (event: AppointmentEvent) => {
-    let backgroundColor = "#3b82f6"; // Niebieski (domyślny - np. zaplanowana wizyta pacjenta)
-
-    if (event.status === "AVAILABLE") {
-      backgroundColor = "#10b981"; // Zielony (szmaragdowy) - wolny termin do wzięcia
-    } else if (event.status === "BOOKED" && isTherapist) {
-      backgroundColor = "#f59e0b"; // Pomarańczowy - umówiony pacjent
-    }
+    let backgroundColor = "#3b82f6"; // domyślny niebieski
+    if (event.status === "AVAILABLE") backgroundColor = "#10b981"; // szmaragdowy
+    if (event.status === "CANCELLED") backgroundColor = "#ef4444"; // czerwony
 
     return {
       style: {
         backgroundColor,
-        borderRadius: "8px",
-        opacity: 0.9,
+        borderRadius: "6px",
         color: "white",
         border: "none",
         display: "block",
-        padding: "2px 5px",
-        fontSize: "12px",
-        fontWeight: "500",
       },
     };
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-      {/* Własne nadpisanie domyślnych styli react-big-calendar pod Tailwind (opcjonalne, ale ładne) */}
-      <style jsx global>{`
-        .rbc-btn-group button {
-          color: #374151;
-          border-color: #e5e7eb;
+    <div className="bg-white p-4 rounded-xl w-full">
+      <style>{`
+        .rbc-calendar {
+          font-family: inherit;
         }
-        .rbc-btn-group button.rbc-active {
-          background-color: #ecfdf5;
-          color: #047857;
+        .rbc-event {
+          font-size: 0.85rem;
+          padding: 2px 5px;
+        }
+        .rbc-toolbar button.rbc-active {
+          background-color: #10b981;
+          color: white;
           border-color: #10b981;
         }
         .rbc-today {
@@ -106,20 +100,30 @@ export default function ScheduleCalendar({
         }}
         view={view}
         onView={(newView: View) => setView(newView)}
-        selectable={isTherapist} // Zaznaczanie pustych slotów działa tu dla terapeuty (tworzenie dostępności)
+        // Zaznaczanie pustych slotów działa tu tylko dla terapeuty (tworzenie dostępności)
+        selectable={isTherapist}
         onSelectSlot={(slotInfo) => {
-          // Kliknięcie w puste miejsce
           if (onBookSlot && slotInfo.action === "select") {
             onBookSlot(slotInfo.start, slotInfo.end);
           }
         }}
         onSelectEvent={(event: AppointmentEvent) => {
-          // Kliknięcie w istniejące wydarzenie
-          const confirmCancel = window.confirm(
-            `Czy chcesz odwołać wizytę: ${event.title}?`,
-          );
-          if (confirmCancel && onCancelEvent) {
-            onCancelEvent(event.id);
+          // ZMIANA: Sprawdzamy czy użytkownik to terapeuta, czy pacjent
+          if (isTherapist) {
+            // TERAPEUTA: Może anulować wizytę (wyświetla się prompt)
+            const confirmCancel = window.confirm(
+              `Czy chcesz odwołać wizytę: ${event.title}?`,
+            );
+            if (confirmCancel && onCancelEvent) {
+              onCancelEvent(event.id);
+            }
+          } else {
+            // PACJENT: Wyświetlamy tylko podgląd informacji o wizycie (bez pytania o anulowanie)
+            alert(
+              `Informacje o wizycie:\n\n${event.title}\nStatus: ${
+                event.status === "BOOKED" ? "Zarezerwowana" : event.status
+              }`,
+            );
           }
         }}
         eventPropGetter={eventStyleGetter}
