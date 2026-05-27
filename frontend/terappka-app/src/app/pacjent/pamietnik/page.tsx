@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 export default function PamietnikPage() {
+  const { data: session } = useSession();
   const [entry, setEntry] = useState("");
-
-  // Stan do przechowywania aktualnie przeglądanej daty
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [question, setQuestion] = useState("Ładowanie pytania...");
 
-  // Funkcje pomocnicze do obliczania dat
   const getPrevDay = (date: Date) => {
     const d = new Date(date);
     d.setDate(d.getDate() - 1);
@@ -33,6 +33,43 @@ export default function PamietnikPage() {
       year: "numeric",
     });
   };
+
+  useEffect(() => {
+    const fetchQuestion = async () => {
+      // Zabezpieczenie: jeśli nie ma tokenu, nie robimy zapytania
+      if (!session?.accessToken) return;
+
+      setQuestion("Ładowanie pytania..."); // Reset podczas zmiany daty
+
+      try {
+        // Opcjonalnie: Jeśli Twój backend potrafi przyjąć datę w parametrze,
+        // możesz ją dokleić, np.: ?date=${selectedDate.toISOString().split('T')[0]}
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+        const res = await fetch(`${apiUrl}/api/diary/question`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          // Zakładamy, że backend zwraca { "question": "Treść pytania..." }
+          setQuestion(data.question || "Brak pytania na ten dzień.");
+        } else {
+          console.error("Błąd pobierania pytania:", res.status);
+          setQuestion("Nie udało się pobrać pytania na ten dzień.");
+        }
+      } catch (error) {
+        console.error("Błąd połączenia z API (Pytanie):", error);
+        setQuestion("Błąd połączenia z serwerem.");
+      }
+    };
+
+    fetchQuestion();
+  }, [selectedDate, session]);
 
   const prevDate = getPrevDay(selectedDate);
   const nextDate = getNextDay(selectedDate);
@@ -95,7 +132,7 @@ export default function PamietnikPage() {
           </div>
 
           <h2 className="text-2xl md:text-3xl font-serif font-bold text-gray-800 mb-10 text-center px-4 leading-relaxed">
-            Tutaj będzie pytanie
+            {question}
           </h2>
 
           <textarea
