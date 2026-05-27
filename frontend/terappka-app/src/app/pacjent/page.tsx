@@ -78,7 +78,7 @@ export default async function PatientDashboard() {
           </div>
           <div>
             <Link
-              href="/pacjent/nowa-wizyta"
+              href="/pacjent/kalendarz"
               className="inline-flex items-center px-6 py-3 bg-emerald-500 text-white font-medium rounded-xl hover:bg-emerald-600 transition-colors shadow-md shadow-emerald-200"
             >
               + Umów nową wizytę
