@@ -42,7 +42,6 @@ export default function PamietnikPage() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 flex flex-col justify-center items-center">
       {/* Pasek nawigacyjny pamiętnika (Nad okładką) */}
       <div className="w-full max-w-3xl flex justify-center items-center gap-4 md:gap-12 mb-8 font-serif text-gray-500">
-        {/* Przycisk: Poprzedni dzień */}
         <button
           onClick={() => setSelectedDate(prevDate)}
           className="flex items-center gap-2 hover:text-emerald-600 transition-colors cursor-pointer group"
@@ -61,7 +60,6 @@ export default function PamietnikPage() {
           {isCurrentDay ? "Dzisiaj" : formatDate(selectedDate)}
         </div>
 
-        {/* Przycisk: Następny dzień (Tylko jeśli to nie jest dzisiaj) */}
         {!isCurrentDay ? (
           <button
             onClick={() => setSelectedDate(nextDate)}
@@ -103,13 +101,8 @@ export default function PamietnikPage() {
           <textarea
             value={entry}
             onChange={(e) => setEntry(e.target.value)}
-            readOnly={!isCurrentDay}
             className="flex-1 w-full resize-none bg-transparent font-serif text-gray-700 text-lg md:text-xl focus:outline-none focus:ring-0 p-0"
-            placeholder={
-              isCurrentDay
-                ? "Zacznij przelewać tutaj swoje myśli..."
-                : "W tym dniu nie dodano żadnego wpisu..."
-            }
+            placeholder="Zacznij przelewać tutaj swoje myśli..."
             style={{
               backgroundImage:
                 "linear-gradient(transparent 31px, #e5e7eb 32px)",
@@ -119,11 +112,9 @@ export default function PamietnikPage() {
           ></textarea>
 
           <div className="mt-8 flex justify-end">
-            {isCurrentDay && (
-              <button className="bg-emerald-400 hover:bg-emerald-500 text-white font-serif px-8 py-3 rounded-md transition-colors shadow-md">
-                Zakończ wpis
-              </button>
-            )}
+            <button className="bg-emerald-400 hover:bg-emerald-500 text-white font-serif px-8 py-3 rounded-md transition-colors shadow-md">
+              Zapisz wpis
+            </button>
           </div>
         </div>
       </div>
