@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from sqlalchemy import func
 from datetime import datetime
 from .. import db
 from ..models import User, Diary
@@ -64,6 +65,24 @@ def get_diary_entries():
     if current_user.role != User.ROLE_PATIENT:
         return jsonify({'error': 'Tylko pacjenci mają dostęp do pamiętnika'}), 403
 
+    # Pobieramy datę z zapytania (np. "2024-05-15")
+    target_date = request.args.get('date')
+
+    if target_date:
+        # 2. UŻYWAMY func.date() ABY "OBRZEZAĆ" GODZINĘ Z BAZY DO PORÓWNANIA
+        # Uwaga: użyj właściwej nazwy kolumny (Diary.created_at lub Diary.date)
+        entry = Diary.query.filter(
+            Diary.patient_id == current_user.id,
+            func.date(Diary.created_at) == target_date  # Tutaj dzieje się magia!
+        ).first()
+        
+        if entry:
+            return jsonify(entry.to_dict())
+        else:
+            # Zwracamy 404, co frontend odczyta i wyczyści pole wpisu
+            return jsonify({'message': 'Brak wpisu dla tej daty'}), 404
+
+    # Jeśli frontend nie wysłał daty (target_date jest None), zwracamy całą historię
     entries = Diary.query.filter_by(patient_id=current_user.id)\
                          .order_by(Diary.created_at.desc())\
                          .all()
