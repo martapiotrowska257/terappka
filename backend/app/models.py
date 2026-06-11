@@ -13,8 +13,8 @@ class User(db.Model):
     first_name = db.Column(db.String(255))
     last_name = db.Column(db.String(255))
     role = db.Column(db.String(50), default=ROLE_PATIENT)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     def to_dict(self):
         return {
@@ -23,8 +23,8 @@ class User(db.Model):
             'firstName': self.first_name,
             'lastName': self.last_name,
             'role': self.role,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'createdAt': self.createdAt.isoformat() if self.createdAt else None,
+            'updatedAt': self.updatedAt.isoformat() if self.updatedAt else None
         }
 
 class Appointment(db.Model):
@@ -51,8 +51,8 @@ class Appointment(db.Model):
     patient = db.relationship('User', foreign_keys=[patient_id])
     therapist = db.relationship('User', foreign_keys=[therapist_id])
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     def to_dict(self):
         return {
@@ -64,8 +64,8 @@ class Appointment(db.Model):
             'description': self.description,
             'cancellationReason': self.cancellation_reason,
             'outcomeNotes': self.outcome_notes,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'createdAt': self.createdAt.isoformat() if self.createdAt else None,
+            'updatedAt': self.updatedAt.isoformat() if self.updatedAt else None
         }
     
 
@@ -80,8 +80,8 @@ class Diary(db.Model):
 
     patient = db.relationship('User', foreign_keys=[patient_id])
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     def to_dict(self):
         return {
@@ -89,6 +89,6 @@ class Diary(db.Model):
             'patientId': self.patient_id,
             'question': self.question,
             'content': self.content,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'createdAt': self.createdAt.isoformat() if self.createdAt else None,
+            'updatedAt': self.updatedAt.isoformat() if self.updatedAt else None
         }
