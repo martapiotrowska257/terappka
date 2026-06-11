@@ -15,7 +15,7 @@ def get_users():
     users = User.query.filter_by(role=User.ROLE_PATIENT).all()
     return jsonify([u.to_dict() for u in users])
 
-@users_bp.route('/api/users/<int:id>', methods=['GET'])
+@users_bp.route('/api/users/<string:id>', methods=['GET'])
 @admin_required()
 def get_user_by_id(id):
     user = User.query.get_or_404(id)    
@@ -53,7 +53,7 @@ def create_user():
         return jsonify({'error': str(e)}), 400
     
 
-@users_bp.route('/api/users/<int:id>', methods=['PUT']) # aktualizacja użytkownika - tylko admin
+@users_bp.route('/api/users/<string:id>', methods=['PUT']) # aktualizacja użytkownika - tylko admin
 @admin_required()
 def update_user(id):
     user = User.query.get_or_404(id)
@@ -82,7 +82,7 @@ def update_user(id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
-@users_bp.route('/api/users/<int:id>', methods=['DELETE'])  # usuwanie użytkownika - tylko admin
+@users_bp.route('/api/users/<string:id>', methods=['DELETE'])  # usuwanie użytkownika - tylko admin
 @admin_required()
 def delete_user(id):
     user = User.query.get_or_404(id)
