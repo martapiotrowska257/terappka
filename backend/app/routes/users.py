@@ -21,38 +21,6 @@ def get_user_by_id(id):
     user = User.query.get_or_404(id)    
     return jsonify(user.to_dict())
 
-@users_bp.route('/api/users', methods=['POST'])
-def create_user():
-    data = request.get_json()
-    if not data or 'email' not in data:
-        return jsonify({'error': 'Email is required'}), 400
-
-    if User.query.filter_by(email=data['email']).first():
-        return jsonify({'error': 'User already exists'}), 409
-
-    requested_role = data.get('role', User.ROLE_PATIENT)
-    valid_roles = [User.ROLE_ADMIN, User.ROLE_THERAPIST, User.ROLE_PATIENT]
-    
-    if requested_role not in valid_roles:
-         return jsonify({'error': 'Invalid role'}), 400
-
-    new_user = User(
-        id=str(uuid.uuid4()),
-        email=data['email'],
-        first_name=data.get('firstName'),
-        last_name=data.get('lastName'),
-        role=requested_role 
-    )
-
-    try:
-        db.session.add(new_user)
-        db.session.commit()
-        return jsonify(new_user.to_dict())
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 400
-    
-
 @users_bp.route('/api/users/<string:id>', methods=['PUT']) # aktualizacja użytkownika - tylko admin
 @admin_required()
 def update_user(id):
