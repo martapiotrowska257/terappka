@@ -30,6 +30,14 @@ export default function PamietnikPage() {
     return date.toDateString() === today.toDateString();
   };
 
+  // Zwraca datę YYYY-MM-DD zgodnie z lokalną strefą czasową pacjenta
+  const getLocalISODate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("pl-PL", {
       day: "numeric",
@@ -47,7 +55,7 @@ export default function PamietnikPage() {
       setSaveStatus("idle");
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
-      const formattedDate = selectedDate.toISOString().split("T")[0];
+      const formattedDate = getLocalISODate(selectedDate);
 
       try {
         const resQuestion = await fetch(
@@ -129,7 +137,7 @@ export default function PamietnikPage() {
         body: JSON.stringify({
           question: question,
           content: entry,
-          date: selectedDate.toISOString().split("T")[0],
+          date: getLocalISODate(selectedDate),
         }),
       });
 
