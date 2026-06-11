@@ -27,11 +27,9 @@ class User(db.Model):
             'firstName': self.first_name,
             'lastName': self.last_name,
             'role': self.role,
-            'appointmentsAsPatient': self.appointments_as_patient,
-            'therapistId': self.therapist_id,
-            'diaries': self.diaries,
+            'therapistId': getattr(self ,'therapist_id', None),
             'createdAt': self.createdAt.isoformat() if self.createdAt else None,
-            'updatedAt': self.updatedAt.isoformat() if self.updatedAt else None
+            'updatedAt': self.updatedAt.isoformat() if getattr(self, 'updatedAt', None) else None
         }
 
 class Appointment(db.Model):
