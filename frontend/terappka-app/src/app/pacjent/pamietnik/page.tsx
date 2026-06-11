@@ -46,8 +46,12 @@ export default function PamietnikPage() {
         const resEntry = await api.get(`/api/diary?date=${formattedDate}`);
 
         setEntry(resEntry.data.content || "");
-      } catch (error) {
-        console.error("Błąd połączenia z API (Pobieranie wpisu):", error);
+      } catch (error: any) {
+        if (error.response && error.response.status === 404) {
+          setEntry("");
+        } else {
+          console.error("Błąd połączenia z API (Pobieranie wpisu):", error);
+        }
       }
     };
 
