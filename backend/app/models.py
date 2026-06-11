@@ -13,6 +13,8 @@ class User(db.Model):
     first_name = db.Column(db.String(255))
     last_name = db.Column(db.String(255))
     role = db.Column(db.String(50), default=ROLE_PATIENT)
+    appointments_as_patient = db.relationship('Appointment', foreign_keys='Appointment.patient_id', back_populates='patient')
+    diaries = db.relationship('Diary', back_populates='patient')
     createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -23,6 +25,8 @@ class User(db.Model):
             'firstName': self.first_name,
             'lastName': self.last_name,
             'role': self.role,
+            'appointmentsAsPatient': self.appointments_as_patient,
+            'diaries': self.diaries,
             'createdAt': self.createdAt.isoformat() if self.createdAt else None,
             'updatedAt': self.updatedAt.isoformat() if self.updatedAt else None
         }
@@ -48,7 +52,7 @@ class Appointment(db.Model):
     cancellation_reason = db.Column(db.String(255), nullable=True) 
     outcome_notes = db.Column(db.Text, nullable=True) 
     
-    patient = db.relationship('User', foreign_keys=[patient_id])
+    patient = db.relationship('User', foreign_keys=[patient_id], back_populates='appointments_as_patient')
     therapist = db.relationship('User', foreign_keys=[therapist_id])
 
     createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -78,7 +82,7 @@ class Diary(db.Model):
     question = db.Column(db.String(500), nullable=False)
     content = db.Column(db.Text, nullable=False)
 
-    patient = db.relationship('User', foreign_keys=[patient_id])
+    patient = db.relationship('User', foreign_keys=[patient_id], back_populates='diaries')
 
     createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
