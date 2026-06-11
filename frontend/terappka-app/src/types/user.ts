@@ -1,4 +1,3 @@
-import { Appointment } from "./appointment";
 import { Diary } from "./diary";
 
 export type User = {
@@ -6,9 +5,10 @@ export type User = {
   email: string;
   firstName: string;
   lastName: string;
-  role: string;
-  appointmentsAsPatient: Appointment[];
+  role: Role;
   diaries: Diary[];
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 };
+
+export type Role = "PATIENT" | "THERAPIST" | "ADMIN";
