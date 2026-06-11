@@ -14,9 +14,9 @@ def get_users():
         return jsonify({'error': 'Brak uprawnień'}), 403
     
     assigned_only = request.args.get('assigned_only') == 'true'
-    
+
     if current_user.role == User.ROLE_THERAPIST and assigned_only:
-        users = User.query.fiter_by(role=User.ROLE_PATIENT, therapist_id=current_user.id).all()
+        users = User.query.filter_by(role=User.ROLE_PATIENT, therapist_id=current_user.id).all()
     else:
         users = User.query.filter_by(role=User.ROLE_PATIENT).all()
 
