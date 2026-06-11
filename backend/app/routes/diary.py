@@ -25,35 +25,78 @@ def get_daily_question():
     if not current_user:
         return jsonify({'error': 'User not found'}), 404
 
-    day_of_year = datetime.utcnow().timetuple().tm_yday
+    target_date_str = request.args.get('date')
+    
+    if target_date_str:
+        try:
+            # Przekształcamy string na datę
+            target_date = datetime.strptime(target_date_str, '%Y-%m-%d')
+        except ValueError:
+            target_date = datetime.utcnow()
+    else:
+        target_date = datetime.utcnow()
+
+    # Obliczamy dzień roku dla WYBRANEJ daty, a nie zawsze dzisiejszej
+    day_of_year = target_date.timetuple().tm_yday
     question_index = day_of_year % len(DIARY_QUESTIONS)
+    
     return jsonify({'question': DIARY_QUESTIONS[question_index]})
 
 @diary_bp.route('/api/diary', methods=['POST'])
 @jwt_required()
-def create_diary_entry():
+def save_diary_entry():
     current_user = get_current_user_from_token()
     if not current_user:
         return jsonify({'error': 'User not found'}), 404
         
     if current_user.role != User.ROLE_PATIENT:
-        return jsonify({'error': 'Tylko pacjenci mogą prowadzić pamiętnik'}), 403
+        return jsonify({'error': 'Tylko pacjenci mają dostęp do pamiętnika'}), 403
 
+    # Pobieramy dane z frontendu
     data = request.get_json()
-    question = data.get('question')
+    target_date = data.get('date') # Format 'YYYY-MM-DD'
     content = data.get('content')
+    question = data.get('question')
 
-    if not question or not content:
-        return jsonify({'error': 'Brakuje pytania lub treści wpisu'}), 400
+    if not target_date or content is None:
+        return jsonify({'error': 'Brak daty lub treści wpisu'}), 400
 
-    new_entry = Diary(
-        patient_id=current_user.id,
-        question=question,
-        content=content
-    )
-    db.session.add(new_entry)
+    # 1. SZUKAMY CZY WPIS NA TEN DZIEŃ JUŻ ISTNIEJE
+    existing_entry = Diary.query.filter(
+        Diary.patient_id == current_user.id,
+        func.date(Diary.createdAt) == target_date
+    ).first()
+
+    if existing_entry:
+        # 2A. AKTUALIZACJA ISTNIEJĄCEGO REKORDU (UPDATE)
+        existing_entry.content = content
+        # Ustawiamy czas aktualizacji na dokładną, obecną chwilę
+        existing_entry.updatedAt = datetime.utcnow() 
+    else:
+        # 2B. TWORZENIE NOWEGO REKORDU (INSERT) - np. gdy pacjent uzupełnia zaległy dzień
+        try:
+            # Przekształcamy string 'YYYY-MM-DD' na obiekt datetime
+            parsed_date = datetime.strptime(target_date, '%Y-%m-%d')
+        except ValueError:
+            return jsonify({'error': 'Nieprawidłowy format daty'}), 400
+
+        new_entry = Diary(
+            patient_id=current_user.id,
+            question=question,
+            content=content,
+            # Ważne: createdAt ustawiamy na wybraną datę z frontendu, aby
+            # pacjent mógł dodawać wpisy za wczoraj/przedwczoraj i żeby funkcja 
+            # func.date() w GET mogła je poprawnie odnaleźć!
+            createdAt=parsed_date, 
+            updatedAt=datetime.utcnow()
+        )
+        # Dodajemy nowy obiekt do sesji (przy update nie trzeba tego robić)
+        db.session.add(new_entry)
+
+    # 3. ZAPIS DO BAZY DANYCH (Zatwierdzenie transakcji)
     db.session.commit()
-    return jsonify(new_entry.to_dict()), 201
+    
+    return jsonify({'message': 'Wpis zapisany pomyślnie!'}), 200
 
 @diary_bp.route('/api/diary', methods=['GET']) # poprawic bo sciaga wszystkie rekordy np. 1000 jak chcemy rekord sprzed 3 lat, najlepiej po dacie albo po id, ale wtedy trzeba by bylo zrobic endpoint do pobierania konkretnego rekordu, a nie wszystkich
 @jwt_required()
@@ -70,10 +113,10 @@ def get_diary_entries():
 
     if target_date:
         # 2. UŻYWAMY func.date() ABY "OBRZEZAĆ" GODZINĘ Z BAZY DO PORÓWNANIA
-        # Uwaga: użyj właściwej nazwy kolumny (Diary.created_at lub Diary.date)
+        # Uwaga: użyj właściwej nazwy kolumny (Diary.createdAt lub Diary.date)
         entry = Diary.query.filter(
             Diary.patient_id == current_user.id,
-            func.date(Diary.created_at) == target_date  # Tutaj dzieje się magia!
+            func.date(Diary.createdAt) == target_date  # Tutaj dzieje się magia!
         ).first()
         
         if entry:
@@ -84,7 +127,7 @@ def get_diary_entries():
 
     # Jeśli frontend nie wysłał daty (target_date jest None), zwracamy całą historię
     entries = Diary.query.filter_by(patient_id=current_user.id)\
-                         .order_by(Diary.created_at.desc())\
+                         .order_by(Diary.createdAt.desc())\
                          .all()
     
     return jsonify([entry.to_dict() for entry in entries])
