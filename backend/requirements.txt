@@ -1,8 +1,10 @@
 Flask
 Flask-SQLAlchemy
 Flask-CORS
+Flask-SocketIO
 PyJWT[crypto]
 mysqlclient
 python-dotenv
 requests
 pymysql
+eventlet

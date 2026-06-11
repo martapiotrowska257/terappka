@@ -1,23 +1,22 @@
-import LoginButton from "../components/LoginButton";
+import LoginForm from "../components/LoginForm";
 import RandomQuote from "../components/RandomQuote";
 
 export default function Home() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-gray-50 p-6 md:p-24 w-full">
-      <div className="text-center w-full max-w-2xl">
-        {/* Główny napis na środku */}
-        <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gray-800">
-          Witaj w Terappka
-        </h1>
+    <main className="relative grid flex-1 items-center justify-center lg:max-w-none lg:grid-cols-2 lg:px-0">
+      <div className="flex flex-1 flex-col items-center justify-center p-6 md:p-24 w-full">
+        <div className="text-center w-full max-w-2xl">
+          {/* Główny napis na środku */}
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-gray-800">
+            Witaj w Terappka
+          </h1>
 
-        {/* Losowy cytat bezpośrednio pod napisem */}
-        <RandomQuote />
+          {/* Losowy cytat bezpośrednio pod napisem */}
 
-        {/* Przycisk logowania pod cytatem */}
-        <div className="flex justify-center mt-12">
-          <LoginButton />
+          <RandomQuote />
         </div>
       </div>
-    </div>
+      <LoginForm />
+    </main>
   );
 }
