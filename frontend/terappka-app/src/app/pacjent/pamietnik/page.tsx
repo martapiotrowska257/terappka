@@ -2,6 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import api from "@/src/lib/api";
+import {
+  getLocalISODate,
+  getPrevDay,
+  getNextDay,
+  isToday,
+  formatDate,
+} from "@/src/lib/time";
 
 export default function PamietnikPage() {
   const { data: session } = useSession();
@@ -13,39 +21,6 @@ export default function PamietnikPage() {
     "idle",
   );
 
-  const getPrevDay = (date: Date) => {
-    const d = new Date(date);
-    d.setDate(d.getDate() - 1);
-    return d;
-  };
-
-  const getNextDay = (date: Date) => {
-    const d = new Date(date);
-    d.setDate(d.getDate() + 1);
-    return d;
-  };
-
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
-
-  // Zwraca datę YYYY-MM-DD zgodnie z lokalną strefą czasową pacjenta
-  const getLocalISODate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("pl-PL", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       if (!session?.accessToken) return;
@@ -54,55 +29,23 @@ export default function PamietnikPage() {
       setEntry("");
       setSaveStatus("idle");
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
       const formattedDate = getLocalISODate(selectedDate);
 
       try {
-        const resQuestion = await fetch(
-          `${apiUrl}/api/diary/question?date=${formattedDate}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.accessToken}`,
-            },
-          },
+        const resQuestion = await api.get(
+          `/api/diary/question?date=${formattedDate}`,
         );
 
-        if (resQuestion.ok) {
-          const data = await resQuestion.json();
-          setQuestion(data.question || "Brak pytania na ten dzień.");
-        } else {
-          setQuestion("Nie udało się pobrać pytania na ten dzień.");
-        }
+        setQuestion(resQuestion.data.question || "Brak pytania na ten dzień.");
       } catch (error) {
         console.error("Błąd pobierania pytania:", error);
         setQuestion("Błąd połączenia z serwerem.");
       }
 
       try {
-        const resEntry = await fetch(
-          `${apiUrl}/api/diary?date=${formattedDate}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.accessToken}`,
-            },
-          },
-        );
+        const resEntry = await api.get(`/api/diary?date=${formattedDate}`);
 
-        if (resEntry.ok) {
-          const data = await resEntry.json();
-          setEntry(data.content || "");
-        } else if (resEntry.status === 404) {
-          setEntry("");
-        } else {
-          console.error(
-            "Błąd pobierania wpisu pamiętnika, status:",
-            resEntry.status,
-          );
-        }
+        setEntry(resEntry.data.content || "");
       } catch (error) {
         console.error("Błąd połączenia z API (Pobieranie wpisu):", error);
       }
@@ -126,27 +69,15 @@ export default function PamietnikPage() {
     setSaveStatus("idle");
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
-
-      const res = await fetch(`${apiUrl}/api/diary`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-        body: JSON.stringify({
-          question: question,
-          content: entry,
-          date: getLocalISODate(selectedDate),
-        }),
+      const res = await api.post("/api/diary", {
+        question: question,
+        content: entry,
+        date: getLocalISODate(selectedDate),
       });
 
-      if (res.ok) {
+      if (res.status === 200 || res.status === 201) {
         setSaveStatus("success");
         setTimeout(() => setSaveStatus("idle"), 3000);
-      } else {
-        console.error("Błąd zapisu pamiętnika:", res.status);
-        setSaveStatus("error");
       }
     } catch (error) {
       console.error("Błąd połączenia z API (Zapis):", error);

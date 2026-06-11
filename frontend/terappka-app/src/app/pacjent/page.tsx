@@ -4,14 +4,7 @@ import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import ActionTiles from "@/src/components/ActionTiles";
-
-interface Appointment {
-  id: number;
-  therapistName: string;
-  dateTime: string;
-  status: string;
-  description?: string;
-}
+import type { Appointment } from "@/src/types/appointment";
 
 async function getAppointments(token: string): Promise<Appointment[]> {
   const apiUrl = process.env.API_URL || "http://127.0.0.1:5000";
