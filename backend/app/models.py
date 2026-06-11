@@ -13,6 +13,8 @@ class User(db.Model):
     first_name = db.Column(db.String(255))
     last_name = db.Column(db.String(255))
     role = db.Column(db.String(50), default=ROLE_PATIENT)
+    therapist_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
+    assigned_patients = db.relationship('User', backref=db.backref('assigned_therapist', remote_side=[id]))
     appointments_as_patient = db.relationship('Appointment', foreign_keys='Appointment.patient_id', back_populates='patient')
     diaries = db.relationship('Diary', back_populates='patient')
     createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -25,10 +27,9 @@ class User(db.Model):
             'firstName': self.first_name,
             'lastName': self.last_name,
             'role': self.role,
-            'appointmentsAsPatient': self.appointments_as_patient,
-            'diaries': self.diaries,
+            'therapistId': getattr(self ,'therapist_id', None),
             'createdAt': self.createdAt.isoformat() if self.createdAt else None,
-            'updatedAt': self.updatedAt.isoformat() if self.updatedAt else None
+            'updatedAt': self.updatedAt.isoformat() if getattr(self, 'updatedAt', None) else None
         }
 
 class Appointment(db.Model):
@@ -72,7 +73,6 @@ class Appointment(db.Model):
             'updatedAt': self.updatedAt.isoformat() if self.updatedAt else None
         }
     
-
 class Diary(db.Model):
     __tablename__ = 'diaries'
 
