@@ -10,7 +10,7 @@ def create_app():
     
     app.config.from_object(Config)
 
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"]}})
     db.init_app(app)
     
     from .routes.users import users_bp
