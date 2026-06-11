@@ -14,7 +14,7 @@ class User(db.Model):
     last_name = db.Column(db.String(255))
     role = db.Column(db.String(50), default=ROLE_PATIENT)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     def to_dict(self):
         return {
@@ -52,15 +52,13 @@ class Appointment(db.Model):
     therapist = db.relationship('User', foreign_keys=[therapist_id])
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     def to_dict(self):
         return {
             'id': self.id,
             'patientId': self.patient_id,
-            'patientName': f"{self.patient.first_name} {self.patient.last_name}" if self.patient else None,
             'therapistId': self.therapist_id,
-            'therapistName': f"{self.therapist.first_name} {self.therapist.last_name}" if self.therapist else "Unknown",
             'dateTime': self.date_time.isoformat(),
             'status': self.status,
             'description': self.description,
@@ -83,13 +81,12 @@ class Diary(db.Model):
     patient = db.relationship('User', foreign_keys=[patient_id])
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     def to_dict(self):
         return {
             'id': self.id,
             'patientId': self.patient_id,
-            'patientName': f"{self.patient.first_name} {self.patient.last_name}" if self.patient else None,
             'question': self.question,
             'content': self.content,
             'created_at': self.created_at.isoformat() if self.created_at else None,
