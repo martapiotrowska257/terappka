@@ -1,4 +1,3 @@
-// src/components/Header.tsx
 "use client";
 
 import Link from "next/link";
@@ -8,7 +7,6 @@ import { useSession } from "next-auth/react";
 export default function Header() {
   const { data: session } = useSession();
 
-  // 1. Logika określania ścieżki powrotnej na podstawie roli
   let dashboardLink = "/";
   if (session?.user?.roles?.includes("admin")) {
     dashboardLink = "/admin";
@@ -21,7 +19,6 @@ export default function Header() {
   return (
     <header className="bg-emerald-500 p-4 shadow-md sticky top-0 z-40">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
-        {/* LOGO - kieruje na stronę główną lub do panelu */}
         <h1>
           <Link
             href={session ? dashboardLink : "/"}
@@ -31,7 +28,6 @@ export default function Header() {
           </Link>
         </h1>
 
-        {/* NAWIGACJA PRAWA STRONA */}
         <nav className="flex items-center gap-6">
           {session ? (
             <>

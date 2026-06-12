@@ -56,6 +56,8 @@ class Appointment(db.Model):
     patient = db.relationship('User', foreign_keys=[patient_id], back_populates='appointments_as_patient')
     therapist = db.relationship('User', foreign_keys=[therapist_id])
 
+    duration = db.Column(db.Integer, nullable=False)
+
     createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -64,13 +66,16 @@ class Appointment(db.Model):
             'id': self.id,
             'patientId': self.patient_id,
             'therapistId': self.therapist_id,
-            'dateTime': self.date_time.isoformat(),
+            'therapistName': f"{self.therapist.first_name} {self.therapist.last_name}" if self.therapist else "Nieznany terapeuta",
+            'patientName': f"{self.patient.first_name} {self.patient.last_name}" if self.patient else "Wolny termin",
+            'dateTime': self.date_time.isoformat() + 'Z',
             'status': self.status,
             'description': self.description,
             'cancellationReason': self.cancellation_reason,
             'outcomeNotes': self.outcome_notes,
-            'createdAt': self.createdAt.isoformat() if self.createdAt else None,
-            'updatedAt': self.updatedAt.isoformat() if self.updatedAt else None
+            'duration': self.duration,
+            'createdAt': self.createdAt.isoformat() + 'Z' if self.createdAt else None,
+            'updatedAt': self.updatedAt.isoformat() + 'Z' if self.updatedAt else None
         }
     
 class Diary(db.Model):

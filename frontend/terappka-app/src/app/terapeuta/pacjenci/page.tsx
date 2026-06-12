@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import api from "@/src/lib/api";
+import Toast from "@/src/components/Toast";
+import { ToastType } from "@/src/types/toast";
 
 interface Patient {
   id: string;
@@ -20,17 +22,15 @@ export default function TerapeutaPacjenciPage() {
   const [activeTab, setActiveTab] = useState<"my" | "all">("my");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastType | null>(null);
 
-  // Funkcja pobierająca dane z obu endpointów
   const fetchPatientsData = async () => {
     if (!session?.accessToken) return;
     setLoading(true);
     try {
-      // 1. Pobieramy tylko przypisanych do mnie pacjentów
       const resMy = await api.get("/api/users?assigned_only=true");
       setMyPatients(resMy.data);
 
-      // 2. Pobieramy wszystkich pacjentów w systemie
       const resAll = await api.get("/api/users");
       setAllPatients(resAll.data);
     } catch (error) {
@@ -44,21 +44,24 @@ export default function TerapeutaPacjenciPage() {
     fetchPatientsData();
   }, [session]);
 
-  // Funkcja przypisująca nowego pacjenta do zalogowanego terapeuty
   const handleAssignPatient = async (patientId: string) => {
     setActionLoading(patientId);
     try {
       const res = await api.post(`/api/users/${patientId}/assign`);
       if (res.status === 200) {
-        alert("Pomyślnie przypisano pacjenta!");
-        // Po sukcesie odświeżamy obie listy, by interfejs od razu się zaktualizował
+        setToast({
+          message: "Pomyślnie przypisano pacjenta!",
+          type: "success",
+        });
         await fetchPatientsData();
       }
     } catch (error: any) {
       console.error("Błąd przypisywania pacjenta:", error);
-      alert(
-        error.response?.data?.error || "Wystąpił błąd podczas przypisywania.",
-      );
+      setToast({
+        message:
+          error.response?.data?.error || "Wystąpił błąd podczas przypisywania.",
+        type: "error",
+      });
     } finally {
       setActionLoading(null);
     }
@@ -67,20 +70,18 @@ export default function TerapeutaPacjenciPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-emerald-600 font-medium text-lg animate-pulse">
+        <div className="text-emerald-600 font-medium text-lg">
           Ładowanie listy pacjentów...
         </div>
       </div>
     );
   }
 
-  // Ustalamy, którą listę wyświetlić w zależności od wybranej zakładki
   const displayedPatients = activeTab === "my" ? myPatients : allPatients;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-12">
       <div className="max-w-5xl mx-auto space-y-8">
-        {/* Nagłówek */}
         <header className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">
@@ -93,7 +94,6 @@ export default function TerapeutaPacjenciPage() {
           </div>
         </header>
 
-        {/* Nawigacja Zakładek (Tabs) */}
         <div className="flex border-b border-gray-200 gap-4">
           <button
             onClick={() => setActiveTab("my")}
@@ -117,7 +117,6 @@ export default function TerapeutaPacjenciPage() {
           </button>
         </div>
 
-        {/* Główna Lista */}
         {displayedPatients.length === 0 ? (
           <div className="bg-white p-12 rounded-2xl text-center border border-gray-100 shadow-sm text-gray-400">
             {activeTab === "my"
@@ -127,8 +126,6 @@ export default function TerapeutaPacjenciPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {displayedPatients.map((patient) => {
-              // Sprawdzamy, czy pacjent jest już przypisany do zalogowanego terapeuty
-              // Uwaga: w sesji z NextAuth identyfikator terapeuty znajduje się najczęściej w session.user.id
               const isAlreadyMine = myPatients.some((p) => p.id === patient.id);
 
               return (
@@ -142,7 +139,6 @@ export default function TerapeutaPacjenciPage() {
                     </div>
                     <div className="text-gray-500 text-sm">{patient.email}</div>
 
-                    {/* Badge statusu opiekuna */}
                     <div className="pt-1">
                       {patient.therapistId ? (
                         <span
@@ -164,7 +160,6 @@ export default function TerapeutaPacjenciPage() {
                     </div>
                   </div>
 
-                  {/* Przycisk akcji przypisywania */}
                   {activeTab === "all" && !patient.therapistId && (
                     <button
                       onClick={() => handleAssignPatient(patient.id)}
@@ -182,6 +177,13 @@ export default function TerapeutaPacjenciPage() {
           </div>
         )}
       </div>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

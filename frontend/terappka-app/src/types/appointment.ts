@@ -7,6 +7,7 @@ export type Appointment = {
   description?: string;
   cancellationReason?: string;
   outcomeNotes?: string;
+  duration?: number;
   createdAt?: string;
   updatedAt?: string;
   therapistName?: string;

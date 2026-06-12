@@ -4,7 +4,6 @@ export default function ContactUs() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Nagłówek strony */}
         <div className="text-center mb-16">
           <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
             Skontaktuj się z nami
@@ -15,25 +14,18 @@ export default function ContactUs() {
           </p>
         </div>
 
-        {/* Główna siatka Grid: 2 kolumny na większych ekranach */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Kwadrat: Lewy górny róg */}
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center min-h-[250px]">
             <p className="text-gray-400 italic">Lorem ipsum (Lewy górny)</p>
           </div>
 
-          {/* Kwadrat: Prawy górny róg */}
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center min-h-[250px]">
             <p className="text-gray-400 italic">Lorem ipsum (Prawy górny)</p>
           </div>
 
-          {/* Dolny prostokąt: Formularz i dane kontaktowe rozciągnięte na 2 kolumny */}
           <div className="lg:col-span-2 bg-white p-8 rounded-2xl shadow-md border border-gray-100">
-            {/* Wewnętrzna siatka dla sekcji kontaktowej (układ oryginalny z poprzedniej wersji) */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-              {/* Sekcja Informacyjna (Dane Kontaktowe) */}
               <div className="xl:col-span-1 space-y-6">
-                {/* Karta: Infolinia */}
                 <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 flex items-start space-x-4">
                   <div className="bg-blue-100 p-3 rounded-lg text-blue-600 shrink-0">
                     <svg
@@ -62,7 +54,6 @@ export default function ContactUs() {
                   </div>
                 </div>
 
-                {/* Karta: Email */}
                 <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 flex items-start space-x-4">
                   <div className="bg-green-100 p-3 rounded-lg text-green-600 shrink-0">
                     <svg
@@ -93,7 +84,6 @@ export default function ContactUs() {
                   </div>
                 </div>
 
-                {/* Karta: Adres */}
                 <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 flex items-start space-x-4">
                   <div className="bg-purple-100 p-3 rounded-lg text-purple-600 shrink-0">
                     <svg
@@ -129,7 +119,6 @@ export default function ContactUs() {
                 </div>
               </div>
 
-              {/* Formularz Kontaktowy */}
               <div className="xl:col-span-2 bg-white border border-gray-100 p-6 rounded-xl shadow-sm">
                 <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col">

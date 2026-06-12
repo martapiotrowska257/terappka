@@ -28,6 +28,26 @@ def get_user_by_id(id):
     user = User.query.get_or_404(id)    
     return jsonify(user.to_dict())
 
+@users_bp.route('/api/users/therapist', methods=['GET'])
+@jwt_required()
+def get_my_therapist():
+    current_user = get_current_user_from_token()
+    if not current_user:
+        return jsonify({'error': 'User not found'}), 404
+        
+    if current_user.role != User.ROLE_PATIENT:
+        return jsonify({'error': 'Tylko pacjent posiada przypisanego opiekuna'}), 400
+        
+    # Jeśli pacjent nie ma jeszcze przypisanego terapeuty, zwracamy bezpieczny obiekt bez wywoływania błędów Axios
+    if not current_user.therapist_id:
+        return jsonify({'id': None}), 200
+        
+    therapist = User.query.get(current_user.therapist_id)
+    if not therapist:
+        return jsonify({'id': None}), 200
+        
+    return jsonify(therapist.to_dict())
+
 @users_bp.route('/api/users/<string:patient_id>/assign', methods=['POST'])
 @jwt_required()
 def assign_patient(patient_id):

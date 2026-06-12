@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { Calendar, dateFnsLocalizer, Event } from "react-big-calendar";
+import { useState, useCallback } from "react";
+import { Calendar, dateFnsLocalizer, Event, View } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { pl } from "date-fns/locale";
-import type { View } from "react-big-calendar";
 // @ts-expect-error: side-effect import of CSS file without type declarations
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { AppointmentStatus } from "../types/appointment";
+import type { AppointmentStatus } from "@/src/types/appointment";
 
 const locales = {
   pl: pl,
@@ -23,61 +22,51 @@ const localizer = dateFnsLocalizer({
 
 export interface AppointmentEvent extends Event {
   id: string;
+  title: string;
+  start: Date;
+  end: Date;
   patientName?: string;
   therapistName?: string;
   status: AppointmentStatus;
+  description?: string;
 }
 
 interface ScheduleCalendarProps {
   events: AppointmentEvent[];
   isTherapist: boolean;
-  onBookSlot?: (start: Date, end: Date) => void;
-  onCancelEvent?: (eventId: string) => void;
+  onSlotSelect?: (start: Date) => void;
+  onEventClick?: (event: AppointmentEvent) => void;
 }
 
 export default function ScheduleCalendar({
   events,
   isTherapist,
-  onBookSlot,
-  onCancelEvent,
+  onSlotSelect,
+  onEventClick,
 }: ScheduleCalendarProps) {
   const [view, setView] = useState<View>("week");
+  const [date, setDate] = useState<Date>(new Date());
 
   const handleSelectSlot = useCallback(
-    (slotInfo: {
-      start: Date;
-      end: Date;
-      action: "select" | "click" | "doubleClick";
-    }) => {
-      if (onBookSlot && slotInfo.action === "select") {
-        onBookSlot(slotInfo.start, slotInfo.end);
+    (slotInfo: { start: Date; action: "select" | "click" | "doubleClick" }) => {
+      if (onSlotSelect && isTherapist) {
+        onSlotSelect(slotInfo.start);
       }
     },
-    [onBookSlot],
+    [onSlotSelect, isTherapist],
   );
 
   const handleSelectEvent = useCallback(
     (event: AppointmentEvent) => {
-      if (isTherapist) {
-        const confirmCancel = window.confirm(
-          `Czy chcesz odwołać wizytę: ${event.title}?`,
-        );
-        if (confirmCancel && onCancelEvent) {
-          onCancelEvent(event.id);
-        }
-      } else {
-        alert(
-          `Informacje o wizycie:\n\n${event.title}\nStatus: ${
-            event.status === "SCHEDULED" ? "Zaplanowana" : event.status
-          }`,
-        );
+      if (onEventClick) {
+        onEventClick(event);
       }
     },
-    [isTherapist, onCancelEvent],
+    [onEventClick],
   );
 
   const eventStyleGetter = useCallback((event: AppointmentEvent) => {
-    let backgroundColor = "#10b981"; // Domyślny szmaragdowy (emerald-500)
+    let backgroundColor = "#10b981";
     let color = "white";
     let border = "none";
 
@@ -133,6 +122,8 @@ export default function ScheduleCalendar({
         }}
         view={view}
         onView={(newView: View) => setView(newView)}
+        date={date}
+        onNavigate={(newDate: Date) => setDate(newDate)}
         selectable={isTherapist}
         onSelectSlot={handleSelectSlot}
         onSelectEvent={handleSelectEvent}
