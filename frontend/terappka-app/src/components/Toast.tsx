@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { ToastType } from "../types/toast";
+import { ToastMessageType } from "../types/toast";
 
 interface ToastProps {
   message: string;
-  type: ToastType;
+  type: ToastMessageType;
   onClose: () => void;
   duration?: number; // Opcjonalny czas trwania (domyślnie 3000ms)
 }
