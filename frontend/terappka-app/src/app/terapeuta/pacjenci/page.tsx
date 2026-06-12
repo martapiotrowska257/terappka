@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import api from "@/src/lib/api";
+import Toast from "@/src/components/Toast";
+import { ToastType } from "@/src/types/toast";
 
 interface Patient {
   id: string;
@@ -22,26 +24,16 @@ export default function TerapeutaPacjenciPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [toast, setToast] = useState<{
     message: string;
-    type: "success" | "error";
+    type: ToastType;
   } | null>(null);
 
-  // Funkcja pomocnicza do wywoływania dymka
-  const showToast = (message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => {
-      setToast(null);
-    }, 3000);
-  };
-  // Funkcja pobierająca dane z obu endpointów
   const fetchPatientsData = async () => {
     if (!session?.accessToken) return;
     setLoading(true);
     try {
-      // 1. Pobieramy tylko przypisanych do mnie pacjentów
       const resMy = await api.get("/api/users?assigned_only=true");
       setMyPatients(resMy.data);
 
-      // 2. Pobieramy wszystkich pacjentów w systemie
       const resAll = await api.get("/api/users");
       setAllPatients(resAll.data);
     } catch (error) {
@@ -55,21 +47,24 @@ export default function TerapeutaPacjenciPage() {
     fetchPatientsData();
   }, [session]);
 
-  // Funkcja przypisująca nowego pacjenta do zalogowanego terapeuty
   const handleAssignPatient = async (patientId: string) => {
     setActionLoading(patientId);
     try {
       const res = await api.post(`/api/users/${patientId}/assign`);
       if (res.status === 200) {
-        showToast("Pomyślnie przypisano pacjenta!", "success");
+        setToast({
+          message: "Pomyślnie przypisano pacjenta!",
+          type: "success",
+        });
         await fetchPatientsData();
       }
     } catch (error: any) {
       console.error("Błąd przypisywania pacjenta:", error);
-      showToast(
-        error.response?.data?.error || "Wystąpił błąd podczas przypisywania.",
-        "error",
-      );
+      setToast({
+        message:
+          error.response?.data?.error || "Wystąpił błąd podczas przypisywania.",
+        type: "error",
+      });
     } finally {
       setActionLoading(null);
     }
@@ -85,7 +80,6 @@ export default function TerapeutaPacjenciPage() {
     );
   }
 
-  // Ustalamy, którą listę wyświetlić w zależności od wybranej zakładki
   const displayedPatients = activeTab === "my" ? myPatients : allPatients;
 
   return (
@@ -194,33 +188,11 @@ export default function TerapeutaPacjenciPage() {
         )}
       </div>
       {toast && (
-        <div
-          className={`fixed top-6 right-6 z-[9999] px-6 py-4 rounded-xl shadow-lg border flex items-center gap-3 transform transition-all ${
-            toast.type === "success"
-              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-              : "bg-red-50 border-red-200 text-red-800"
-          }`}
-          style={{ animation: "slideInRight 0.3s ease-out forwards" }}
-        >
-          <span className="text-xl">
-            {toast.type === "success" ? "✅" : "⚠️"}
-          </span>
-          <p className="font-medium text-sm">{toast.message}</p>
-
-          {/* Animacja CSS dla wjazdu z prawej strony */}
-          <style jsx>{`
-            @keyframes slideInRight {
-              from {
-                opacity: 0;
-                transform: translateX(100%);
-              }
-              to {
-                opacity: 1;
-                transform: translateX(0);
-              }
-            }
-          `}</style>
-        </div>
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
     </div>
   );
