@@ -44,6 +44,7 @@ export default function ScheduleCalendar({
   onEventClick,
 }: ScheduleCalendarProps) {
   const [view, setView] = useState<View>("week");
+  const [date, setDate] = useState<Date>(new Date());
 
   const handleSelectSlot = useCallback(
     (slotInfo: { start: Date; action: "select" | "click" | "doubleClick" }) => {
@@ -120,6 +121,8 @@ export default function ScheduleCalendar({
         }}
         view={view}
         onView={(newView: View) => setView(newView)}
+        date={date}
+        onNavigate={(newDate: Date) => setDate(newDate)}
         selectable={isTherapist}
         onSelectSlot={handleSelectSlot}
         onSelectEvent={handleSelectEvent}
