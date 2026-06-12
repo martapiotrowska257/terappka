@@ -20,6 +20,7 @@ export default function PamietnikPage() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">(
     "idle",
   );
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,7 +61,7 @@ export default function PamietnikPage() {
 
   const handleSaveEntry = async () => {
     if (!session?.accessToken) {
-      alert("Musisz być zalogowany, aby zapisać wpis.");
+      setShowAuthModal(true);
       return;
     }
 
@@ -196,6 +197,49 @@ export default function PamietnikPage() {
           </div>
         </div>
       </div>
+      {showAuthModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div
+            className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 transform transition-all"
+            style={{ animation: "popUp 0.3s ease-out forwards" }}
+          >
+            {/* Ikonka kłódki/ostrzeżenia */}
+            <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
+              🔒
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                Brak autoryzacji
+              </h2>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Musisz być zalogowany, aby móc zapisać swój wpis w pamiętniku.
+                Twoje myśli są prywatne i wymagają bezpiecznego połączenia.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="w-full py-3 px-4 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition-colors shadow-md hover:shadow-lg"
+            >
+              Rozumiem
+            </button>
+          </div>
+
+          <style jsx>{`
+            @keyframes popUp {
+              from {
+                opacity: 0;
+                transform: scale(0.95);
+              }
+              to {
+                opacity: 1;
+                transform: scale(1);
+              }
+            }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 }
