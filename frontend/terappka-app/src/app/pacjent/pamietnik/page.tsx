@@ -17,9 +17,9 @@ export default function PamietnikPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [question, setQuestion] = useState("Ładowanie pytania...");
   const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">(
-    "idle",
-  );
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "success" | "error" | "empty"
+  >("idle");
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
@@ -66,7 +66,8 @@ export default function PamietnikPage() {
     }
 
     if (!entry.trim()) {
-      alert("Nie możesz zapisać pustego wpisu.");
+      setSaveStatus("empty");
+      setTimeout(() => setSaveStatus("idle"), 3000);
       return;
     }
 
@@ -179,6 +180,11 @@ export default function PamietnikPage() {
               {saveStatus === "error" && (
                 <span className="text-red-500 font-medium">
                   ✕ Wystąpił błąd podczas zapisu.
+                </span>
+              )}
+              {saveStatus === "empty" && (
+                <span className="text-amber-500 font-medium">
+                  ✎ Nie możesz zapisać pustego wpisu.
                 </span>
               )}
             </div>
