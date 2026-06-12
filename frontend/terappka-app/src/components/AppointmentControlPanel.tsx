@@ -36,9 +36,17 @@ export default function AppointmentControlPanel({
 
   const [toast, setToast] = useState<ToastType | null>(null);
 
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [cancelStatus, setCancelStatus] = useState<"CANCELLED" | "NO_SHOW">(
+    "CANCELLED",
+  );
+  const [cancelReason, setCancelReason] = useState("");
+
   const [prevSlotDate, setPrevSlotDate] = useState<Date | null>(
     selectedSlotDate,
   );
+  const [prevSelectedEvent, setPrevSelectedEvent] =
+    useState<AppointmentEvent | null>(selectedEvent);
 
   if (selectedSlotDate !== prevSlotDate) {
     setPrevSlotDate(selectedSlotDate);
@@ -47,6 +55,13 @@ export default function AppointmentControlPanel({
       setFormTime(formatTimeToHHMM(selectedSlotDate));
       setFormError(null);
     }
+  }
+
+  if (selectedEvent !== prevSelectedEvent) {
+    setPrevSelectedEvent(selectedEvent);
+    setIsCancelling(false);
+    setCancelStatus("CANCELLED");
+    setCancelReason("");
   }
 
   const handleCreateAppointment = async (e: React.FormEvent) => {
@@ -84,28 +99,39 @@ export default function AppointmentControlPanel({
     }
   };
 
-  const handleDeleteOrCancel = async () => {
+  const handleDeleteAvailable = async () => {
     if (!selectedEvent) return;
-
     try {
-      if (selectedEvent.status === "AVAILABLE") {
-        await api.delete(`/api/appointments/${selectedEvent.id}`);
-        setToast({ message: "Wolny termin usunięty.", type: "success" });
-      } else {
-        const reason = window.prompt("Podaj powód odwołania wizyty:");
-        if (reason === null) return;
-
-        await api.patch(`/api/appointments/${selectedEvent.id}/status`, {
-          status: "CANCELLED",
-          cancellationReason: reason || "Odwołana przez terapeutę",
-        });
-        setToast({ message: "Wizyta została odwołana.", type: "success" });
-      }
+      await api.delete(`/api/appointments/${selectedEvent.id}`);
+      setToast({ message: "Wolny termin usunięty.", type: "success" });
       onCloseEvent();
       onRefresh();
     } catch (error) {
       console.error(error);
-      setToast({ message: "Nie udało się wykonać operacji.", type: "error" });
+      setToast({ message: "Nie udało się usunąć terminu.", type: "error" });
+    }
+  };
+
+  const submitCancellation = async () => {
+    if (!selectedEvent) return;
+
+    try {
+      const finalReason =
+        cancelStatus === "NO_SHOW"
+          ? "Pacjent nie zjawił się"
+          : cancelReason.trim() || "Odwołana przez terapeutę";
+
+      await api.patch(`/api/appointments/${selectedEvent.id}/status`, {
+        status: cancelStatus,
+        cancellationReason: finalReason,
+      });
+
+      setToast({ message: "Wizyta została odwołana.", type: "success" });
+      onCloseEvent();
+      onRefresh();
+    } catch (error) {
+      console.error(error);
+      setToast({ message: "Nie udało się odwołać wizyty.", type: "error" });
     }
   };
 
@@ -120,78 +146,157 @@ export default function AppointmentControlPanel({
             ✕ Zamknij
           </button>
 
-          <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
-            Szczegóły zdarzenia
-          </h2>
+          {isCancelling ? (
+            <div>
+              <h2 className="text-lg font-bold text-red-600 mb-4 border-b border-red-100 pb-2">
+                Odwoływanie wizyty
+              </h2>
 
-          <div className="space-y-3 mb-6">
-            <div>
-              <div className="text-xs text-gray-500 uppercase tracking-wide">
-                Tytuł
+              <div className="mb-6 space-y-2 bg-red-50 p-3 rounded-lg border border-red-100 text-sm">
+                <p>
+                  <strong>Wizyta:</strong> {selectedEvent.title}
+                </p>
+                <p>
+                  <strong>Czas:</strong> {formatDateToISO(selectedEvent.start)}{" "}
+                  o {formatTimeToHHMM(selectedEvent.start)}
+                </p>
               </div>
-              <div className="font-medium text-gray-800">
-                {selectedEvent.title}
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <div>
-                <div className="text-xs text-gray-500 uppercase tracking-wide">
-                  Data
-                </div>
-                <div className="font-medium text-gray-800">
-                  {formatDateToISO(selectedEvent.start)}
-                </div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500 uppercase tracking-wide">
-                  Godzina
-                </div>
-                <div className="font-medium text-gray-800">
-                  {formatTimeToHHMM(selectedEvent.start)}
-                </div>
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-500 uppercase tracking-wide">
-                Status
-              </div>
-              <div className="font-medium">
-                {selectedEvent.status === "AVAILABLE"
-                  ? "🟢 Wolny termin"
-                  : selectedEvent.status === "SCHEDULED"
-                    ? "🔵 Zaplanowana"
-                    : selectedEvent.status === "CANCELLED"
-                      ? "🔴 Odwołana"
-                      : selectedEvent.status}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-500 uppercase tracking-wide mt-2">
-                Notatki
-              </div>
-              <div
-                className={`font-medium text-sm mt-1 p-2 rounded-md ${selectedEvent.description ? "text-gray-800 bg-gray-50 border border-gray-100" : "text-gray-400 italic"}`}
-              >
-                {selectedEvent.description || "Brak notatek"}
-              </div>
-            </div>
-          </div>
 
-          {selectedEvent.status === "AVAILABLE" && (
-            <button
-              onClick={handleDeleteOrCancel}
-              className="w-full py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-medium transition-colors"
-            >
-              Usuń wolny termin
-            </button>
-          )}
-          {selectedEvent.status === "SCHEDULED" && (
-            <button
-              onClick={handleDeleteOrCancel}
-              className="w-full py-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg font-medium transition-colors"
-            >
-              Odwołaj wizytę pacjenta
-            </button>
+              <div className="flex p-1 bg-gray-100 rounded-lg mb-4">
+                <button
+                  type="button"
+                  onClick={() => setCancelStatus("CANCELLED")}
+                  className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${cancelStatus === "CANCELLED" ? "bg-white text-red-600 shadow-sm" : "text-gray-500"}`}
+                >
+                  Odwołaj wizytę
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCancelStatus("NO_SHOW")}
+                  className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${cancelStatus === "NO_SHOW" ? "bg-white text-amber-600 shadow-sm" : "text-gray-500"}`}
+                >
+                  Nieobecność
+                </button>
+              </div>
+
+              {cancelStatus === "CANCELLED" && (
+                <div className="mb-6">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Powód odwołania (opcjonalny)
+                  </label>
+                  <textarea
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="Np. Nagła sytuacja losowa..."
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-sm h-20 resize-none"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    Jeśli zostawisz puste, wpiszemy &quot;Odwołana przez
+                    terapeutę&quot;.
+                  </p>
+                </div>
+              )}
+
+              {cancelStatus === "NO_SHOW" && (
+                <div className="mb-6 text-sm text-gray-500 text-center italic">
+                  Status wizyty zostanie zmieniony na &quot;Pacjent nie zjawił
+                  się&quot;.
+                </div>
+              )}
+
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => setIsCancelling(false)}
+                  className="flex-1 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                >
+                  Wróć
+                </button>
+                <button
+                  onClick={submitCancellation}
+                  className="flex-1 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg font-medium transition-colors shadow-sm"
+                >
+                  Potwierdź
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
+                Szczegóły zdarzenia
+              </h2>
+
+              <div className="space-y-3 mb-6">
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">
+                    Tytuł
+                  </div>
+                  <div className="font-medium text-gray-800">
+                    {selectedEvent.title}
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wide">
+                      Data
+                    </div>
+                    <div className="font-medium text-gray-800">
+                      {formatDateToISO(selectedEvent.start)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wide">
+                      Godzina
+                    </div>
+                    <div className="font-medium text-gray-800">
+                      {formatTimeToHHMM(selectedEvent.start)}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">
+                    Status
+                  </div>
+                  <div className="font-medium">
+                    {selectedEvent.status === "AVAILABLE"
+                      ? "🟢 Wolny termin"
+                      : selectedEvent.status === "SCHEDULED"
+                        ? "🔵 Zaplanowana"
+                        : selectedEvent.status === "CANCELLED"
+                          ? "🔴 Odwołana"
+                          : selectedEvent.status === "NO_SHOW"
+                            ? "🚫 Odwołana (Nieobecność)"
+                            : selectedEvent.status}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide mt-2">
+                    Notatki
+                  </div>
+                  <div
+                    className={`font-medium text-sm mt-1 p-2 rounded-md ${selectedEvent.description ? "text-gray-800 bg-gray-50 border border-gray-100" : "text-gray-400 italic"}`}
+                  >
+                    {selectedEvent.description || "Brak notatek"}
+                  </div>
+                </div>
+              </div>
+
+              {selectedEvent.status === "AVAILABLE" && (
+                <button
+                  onClick={handleDeleteAvailable}
+                  className="w-full py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg font-medium transition-colors"
+                >
+                  Usuń wolny termin
+                </button>
+              )}
+              {selectedEvent.status === "SCHEDULED" && (
+                <button
+                  onClick={() => setIsCancelling(true)}
+                  className="w-full py-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg font-medium transition-colors"
+                >
+                  Odwołaj wizytę
+                </button>
+              )}
+            </div>
           )}
         </div>
 
