@@ -56,6 +56,8 @@ class Appointment(db.Model):
     patient = db.relationship('User', foreign_keys=[patient_id], back_populates='appointments_as_patient')
     therapist = db.relationship('User', foreign_keys=[therapist_id])
 
+    duration = db.Column(db.Integer, nullable=False)
+
     createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -71,6 +73,7 @@ class Appointment(db.Model):
             'description': self.description,
             'cancellationReason': self.cancellation_reason,
             'outcomeNotes': self.outcome_notes,
+            'duration': self.duration,
             'createdAt': self.createdAt.isoformat() + 'Z' if self.createdAt else None,
             'updatedAt': self.updatedAt.isoformat() + 'Z' if self.updatedAt else None
         }

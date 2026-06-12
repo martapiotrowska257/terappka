@@ -51,7 +51,8 @@ def create_appointment():
         therapist_id=therapist_id,
         date_time=dt,
         description=data.get('description', ''),
-        status=status # Używamy dynamicznie ustalonego statusu
+        status=status, # Używamy dynamicznie ustalonego statusu
+        duration=data.get('duration', 50)
     )
 
     db.session.add(new_appointment)
