@@ -22,10 +22,7 @@ export default function TerapeutaPacjenciPage() {
   const [activeTab, setActiveTab] = useState<"my" | "all">("my");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [toast, setToast] = useState<{
-    message: string;
-    type: ToastType;
-  } | null>(null);
+  const [toast, setToast] = useState<ToastType | null>(null);
 
   const fetchPatientsData = async () => {
     if (!session?.accessToken) return;
@@ -73,7 +70,7 @@ export default function TerapeutaPacjenciPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-emerald-600 font-medium text-lg animate-pulse">
+        <div className="text-emerald-600 font-medium text-lg">
           Ładowanie listy pacjentów...
         </div>
       </div>
