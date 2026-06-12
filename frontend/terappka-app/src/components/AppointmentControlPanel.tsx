@@ -30,6 +30,7 @@ export default function AppointmentControlPanel({
   const [formMode, setFormMode] = useState<"AVAILABLE" | "SCHEDULED">(
     "AVAILABLE",
   );
+  const [formDuration, setFormDuration] = useState<number>(50);
   const [formPatientId, setFormPatientId] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
@@ -69,7 +70,7 @@ export default function AppointmentControlPanel({
     setFormError(null);
 
     const targetTime = new Date(`${formDate}T${formTime}`).getTime();
-    const targetEnd = targetTime + 50 * 60 * 1000;
+    const targetEnd = targetTime + formDuration * 60 * 1000;
 
     const hasConflict = events.some((ev) => {
       if (ev.status === "CANCELLED" || ev.status === "NO_SHOW") {
@@ -88,11 +89,13 @@ export default function AppointmentControlPanel({
     try {
       await api.post("/api/appointments", {
         dateTime: new Date(`${formDate}T${formTime}`).toISOString(),
+        duration: formDuration,
         patientId: formMode === "SCHEDULED" ? formPatientId : undefined,
         description: formDescription,
       });
 
       setFormDescription("");
+      setFormDuration(50);
       setToast({ message: "Dodano do kalendarza!", type: "success" });
       onRefresh();
     } catch (error: any) {
@@ -248,10 +251,11 @@ export default function AppointmentControlPanel({
                   </div>
                   <div>
                     <div className="text-xs text-gray-500 uppercase tracking-wide">
-                      Godzina
+                      Czas trwania
                     </div>
                     <div className="font-medium text-gray-800">
-                      {formatTimeToHHMM(selectedEvent.start)}
+                      {formatTimeToHHMM(selectedEvent.start)} -{" "}
+                      {formatTimeToHHMM(selectedEvent.end)}
                     </div>
                   </div>
                 </div>
@@ -339,7 +343,7 @@ export default function AppointmentControlPanel({
           </div>
 
           <div className="flex gap-4">
-            <div className="w-1/2">
+            <div className="w-1/3">
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Data
               </label>
@@ -354,9 +358,9 @@ export default function AppointmentControlPanel({
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
               />
             </div>
-            <div className="w-1/2">
+            <div className="w-1/3">
               <label className="block text-xs font-medium text-gray-700 mb-1">
-                Godzina startu
+                Godzina
               </label>
               <input
                 type="time"
@@ -369,7 +373,27 @@ export default function AppointmentControlPanel({
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
               />
             </div>
+            <div className="w-1/3">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Długość
+              </label>
+              <select
+                value={formDuration}
+                onChange={(e) => {
+                  setFormDuration(Number(e.target.value));
+                  setFormError(null);
+                }}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
+              >
+                <option value={30}>30 min</option>
+                <option value={45}>45 min</option>
+                <option value={50}>50 min</option>
+                <option value={60}>60 min</option>
+                <option value={90}>90 min</option>
+              </select>
+            </div>
           </div>
+
           {formError && (
             <div className="text-sm font-medium text-red-600 bg-red-50 p-3 rounded-lg border border-red-100 flex items-start gap-2">
               <p className="leading-snug">{formError}</p>

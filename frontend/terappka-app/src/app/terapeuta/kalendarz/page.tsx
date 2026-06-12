@@ -32,7 +32,9 @@ export default function TherapistCalendarPage() {
             ? app.dateTime
             : `${app.dateTime}Z`;
           const startDate = new Date(dateString);
-          const endDate = new Date(startDate.getTime() + 50 * 60 * 1000);
+          const endDate = new Date(
+            startDate.getTime() + (app.duration || 50) * 60 * 1000,
+          );
 
           const patientInfo = resPatients.data.find(
             (p: User) => p.id === app.patientId,
