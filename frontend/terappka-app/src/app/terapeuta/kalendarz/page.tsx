@@ -49,6 +49,7 @@ export default function TherapistCalendarPage() {
             end: endDate,
             status: app.status as AppointmentStatus,
             patientName: pName,
+            description: app.description,
           };
         },
       );

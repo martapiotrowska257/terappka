@@ -165,6 +165,16 @@ export default function AppointmentControlPanel({
                       : selectedEvent.status}
               </div>
             </div>
+            <div>
+              <div className="text-xs text-gray-500 uppercase tracking-wide mt-2">
+                Notatki
+              </div>
+              <div
+                className={`font-medium text-sm mt-1 p-2 rounded-md ${selectedEvent.description ? "text-gray-800 bg-gray-50 border border-gray-100" : "text-gray-400 italic"}`}
+              >
+                {selectedEvent.description || "Brak notatek"}
+              </div>
+            </div>
           </div>
 
           {selectedEvent.status === "AVAILABLE" && (
