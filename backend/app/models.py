@@ -64,6 +64,8 @@ class Appointment(db.Model):
             'id': self.id,
             'patientId': self.patient_id,
             'therapistId': self.therapist_id,
+            'therapistName': f"{self.therapist.first_name} {self.therapist.last_name}" if self.therapist else "Nieznany terapeuta",
+            'patientName': f"{self.patient.first_name} {self.patient.last_name}" if self.patient else "Wolny termin",
             'dateTime': self.date_time.isoformat() + 'Z',
             'status': self.status,
             'description': self.description,
