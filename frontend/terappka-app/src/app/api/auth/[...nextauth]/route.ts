@@ -1,10 +1,11 @@
+import { User } from "@/src/types/user";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 // Funkcja pomocnicza do dekodowania tokena JWT bez zewnętrznych bibliotek
 const decodeJwt = (token: string) => {
   try {
-    return JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+    return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
   } catch (e) {
     return null;
   }
@@ -31,11 +32,14 @@ export const authOptions: NextAuthOptions = {
         });
 
         try {
-          const res = await fetch(`${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: payload,
-          });
+          const res = await fetch(
+            `${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: payload,
+            },
+          );
 
           const data = await res.json();
 
@@ -50,15 +54,17 @@ export const authOptions: NextAuthOptions = {
           const roles = decodedToken?.realm_access?.roles || [];
 
           return {
-            id: data.session_state || "unknown",
-            name: credentials.email, 
+            id: decodedToken?.sub || data.session_state || "unknown",
+            name: decodedToken?.given_name || credentials.email,
             email: credentials.email,
             accessToken: data.access_token,
             refreshToken: data.refresh_token,
             expiresIn: data.expires_in,
             roles: roles, // <--- Przekazujemy role dalej
-          };
 
+            firstName: decodedToken?.given_name || "",
+            lastName: decodedToken?.family_name || "",
+          };
         } catch (error) {
           console.error(error);
           return null;
@@ -73,6 +79,8 @@ export const authOptions: NextAuthOptions = {
         token.refreshToken = user.refreshToken;
         token.expiresAt = Date.now() + (user.expiresIn as number) * 1000;
         token.roles = user.roles; // <--- Zapisujemy role w tokenie NextAuth
+        token.firstName = (user as User).firstName || "";
+        token.lastName = (user as User).lastName || "";
       }
       return token;
     },
@@ -81,7 +89,7 @@ export const authOptions: NextAuthOptions = {
       session.error = token.error;
       // <--- Przepisujemy role do widocznego obiektu sesji
       if (session.user) {
-        session.user.roles = token.roles; 
+        session.user.roles = token.roles;
       }
       return session;
     },
