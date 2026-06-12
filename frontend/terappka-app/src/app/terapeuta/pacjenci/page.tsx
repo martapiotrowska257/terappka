@@ -82,7 +82,6 @@ export default function TerapeutaPacjenciPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-12">
       <div className="max-w-5xl mx-auto space-y-8">
-        {/* Nagłówek */}
         <header className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">
@@ -95,7 +94,6 @@ export default function TerapeutaPacjenciPage() {
           </div>
         </header>
 
-        {/* Nawigacja Zakładek (Tabs) */}
         <div className="flex border-b border-gray-200 gap-4">
           <button
             onClick={() => setActiveTab("my")}
@@ -119,7 +117,6 @@ export default function TerapeutaPacjenciPage() {
           </button>
         </div>
 
-        {/* Główna Lista */}
         {displayedPatients.length === 0 ? (
           <div className="bg-white p-12 rounded-2xl text-center border border-gray-100 shadow-sm text-gray-400">
             {activeTab === "my"
@@ -129,8 +126,6 @@ export default function TerapeutaPacjenciPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {displayedPatients.map((patient) => {
-              // Sprawdzamy, czy pacjent jest już przypisany do zalogowanego terapeuty
-              // Uwaga: w sesji z NextAuth identyfikator terapeuty znajduje się najczęściej w session.user.id
               const isAlreadyMine = myPatients.some((p) => p.id === patient.id);
 
               return (
@@ -144,7 +139,6 @@ export default function TerapeutaPacjenciPage() {
                     </div>
                     <div className="text-gray-500 text-sm">{patient.email}</div>
 
-                    {/* Badge statusu opiekuna */}
                     <div className="pt-1">
                       {patient.therapistId ? (
                         <span
@@ -166,7 +160,6 @@ export default function TerapeutaPacjenciPage() {
                     </div>
                   </div>
 
-                  {/* Przycisk akcji przypisywania */}
                   {activeTab === "all" && !patient.therapistId && (
                     <button
                       onClick={() => handleAssignPatient(patient.id)}

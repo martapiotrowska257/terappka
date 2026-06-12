@@ -99,7 +99,6 @@ export default function PamietnikPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 flex flex-col justify-center items-center">
-      {/* Pasek nawigacyjny pamiętnika */}
       <div className="w-full max-w-3xl flex justify-center items-center gap-4 md:gap-12 mb-8 font-serif text-gray-500">
         <button
           onClick={() => setSelectedDate(prevDate)}
@@ -142,7 +141,6 @@ export default function PamietnikPage() {
         )}
       </div>
 
-      {/* Główny kontener książki */}
       <div className="w-full max-w-3xl bg-[#fdfbf7] shadow-2xl rounded-r-3xl rounded-l-sm border-l-[16px] border-emerald-100 min-h-[700px] flex flex-col relative transition-all duration-300">
         <div className="p-8 md:p-12 flex-1 flex flex-col">
           <div className="flex justify-between items-end border-b-2 border-gray-200 pb-2 mb-10">
@@ -209,7 +207,6 @@ export default function PamietnikPage() {
             className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 transform transition-all"
             style={{ animation: "popUp 0.3s ease-out forwards" }}
           >
-            {/* Ikonka kłódki/ostrzeżenia */}
             <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
               🔒
             </div>

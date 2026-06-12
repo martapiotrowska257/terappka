@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import ScheduleCalendar from "@/src/components/ScheduleCalendar";
 import type { Appointment, AppointmentStatus } from "@/src/types/appointment";
 
-// Funkcja pobierająca wizyty zalogowanego pacjenta
 async function getPatientAppointments(token: string): Promise<Appointment[]> {
   const apiUrl = process.env.API_URL || "http://127.0.0.1:5000";
 
@@ -47,7 +46,6 @@ export default async function PatientCalendarPage() {
 
   const events = appointments.map((app) => {
     const startDate = new Date(app.dateTime);
-    // Zakładamy domyślny czas trwania sesji terapeutycznej np. 50 minut
     const endDate = new Date(startDate.getTime() + 50 * 60 * 1000);
 
     const mappedStatus = app.status as AppointmentStatus;

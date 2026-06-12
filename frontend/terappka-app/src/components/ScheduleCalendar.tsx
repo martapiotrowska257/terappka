@@ -65,7 +65,7 @@ export default function ScheduleCalendar({
   );
 
   const eventStyleGetter = useCallback((event: AppointmentEvent) => {
-    let backgroundColor = "#10b981"; // Domyślny szmaragdowy (emerald-500)
+    let backgroundColor = "#10b981";
     let color = "white";
     let border = "none";
 

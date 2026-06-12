@@ -1,4 +1,3 @@
-// src/app/user/page.tsx
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
@@ -6,7 +5,6 @@ import Link from "next/link";
 import ActionTiles from "@/src/components/ActionTiles";
 import type { Appointment } from "@/src/types/appointment";
 
-// Funkcja pobierająca wizyty zalogowanego pacjenta
 async function getAppointments(token: string): Promise<Appointment[]> {
   const apiUrl =
     process.env.NEXT_PUBLIC_API_URL ||
@@ -29,7 +27,6 @@ async function getAppointments(token: string): Promise<Appointment[]> {
   }
 }
 
-// Funkcja pobierająca przypisanego terapeutę
 async function getMyTherapist(token: string) {
   const apiUrl =
     process.env.NEXT_PUBLIC_API_URL ||
@@ -53,21 +50,17 @@ async function getMyTherapist(token: string) {
 }
 
 export default async function PatientDashboard() {
-  // 1. Pobranie sesji użytkownika na serwerze
   const session = await getServerSession(authOptions);
 
-  // 2. Autoryzacja i weryfikacja ról
   if (!session || !session.user?.roles?.includes("user")) {
     redirect("/login");
   }
 
-  // 3. Współbieżne (szybkie) pobranie kompletnych danych z API bazy
   const [appointments, therapist] = await Promise.all([
     getAppointments(session.accessToken as string),
     getMyTherapist(session.accessToken as string),
   ]);
 
-  // Filtrujemy tylko przyszłe, nieodwołane wizyty
   const upcomingAppointments = appointments
     .filter(
       (app) =>
@@ -82,7 +75,6 @@ export default async function PatientDashboard() {
   const userName =
     session.user.name || session.user.email?.split("@")[0] || "Użytkowniku";
 
-  // Wyliczanie inicjałów przypisanego terapeuty do awatara
   const therapistInitials = therapist?.id
     ? `${therapist.firstName[0] || ""}${therapist.lastName[0] || ""}`.toUpperCase()
     : "??";
@@ -90,7 +82,6 @@ export default async function PatientDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-12">
       <div className="max-w-5xl mx-auto space-y-8">
-        {/* SEKCJA POWITALNA */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">
@@ -110,9 +101,7 @@ export default async function PatientDashboard() {
           </div>
         </header>
 
-        {/* GŁÓWNY GRID WIDŻETÓW */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* WIDŻET 1: Najbliższa wizyta (DYNAMICZNY) */}
           <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-800">
@@ -159,7 +148,6 @@ export default async function PatientDashboard() {
             )}
           </div>
 
-          {/* WIDŻET 2: Twój terapeuta (DYNAMICZNY) */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between gap-4">
             <div>
               <h2 className="text-xl font-bold text-gray-800 mb-4">

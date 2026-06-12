@@ -5,13 +5,10 @@ import { useSession, signOut } from "next-auth/react";
 export default function SessionTimeoutWatcher() {
   const { data: session } = useSession();
 
-  // 1. BEZ STANÓW I EFEKTÓW: Bezpośrednio sprawdzamy status sesji
   const isSessionExpired = session?.error === "RefreshAccessTokenError";
 
-  // 2. Jeśli sesja jest ważna, nic nie renderujemy (komponent śpi w tle)
   if (!isSessionExpired) return null;
 
-  // 3. Jeśli sesja wygasła, natychmiast renderujemy modal
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div

@@ -38,7 +38,6 @@ export default function AddAppointmentModal({
     setIsSubmitting(true);
 
     try {
-      // Łączenie daty i czasu do formatu ISO (wymagane przez bazę)
       const dateTimeIso = new Date(`${date}T${time}`).toISOString();
 
       await api.post("/api/appointments", {

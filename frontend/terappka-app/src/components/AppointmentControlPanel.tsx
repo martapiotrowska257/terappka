@@ -75,9 +75,8 @@ export default function AppointmentControlPanel({
       });
 
       setFormDescription("");
-      // ZAMIANA ALERTU NA TOAST
       setToast({ message: "Dodano do kalendarza!", type: "success" });
-      onRefresh(); // Odświeżamy dane w głównym komponencie
+      onRefresh();
     } catch (error: any) {
       setFormError(
         error.response?.data?.error || "Wystąpił błąd podczas dodawania.",
@@ -91,7 +90,6 @@ export default function AppointmentControlPanel({
     try {
       if (selectedEvent.status === "AVAILABLE") {
         await api.delete(`/api/appointments/${selectedEvent.id}`);
-        // ZAMIANA ALERTU NA TOAST
         setToast({ message: "Wolny termin usunięty.", type: "success" });
       } else {
         const reason = window.prompt("Podaj powód odwołania wizyty:");
@@ -101,19 +99,16 @@ export default function AppointmentControlPanel({
           status: "CANCELLED",
           cancellationReason: reason || "Odwołana przez terapeutę",
         });
-        // ZAMIANA ALERTU NA TOAST
         setToast({ message: "Wizyta została odwołana.", type: "success" });
       }
       onCloseEvent();
       onRefresh();
     } catch (error) {
       console.error(error);
-      // ZAMIANA ALERTU NA TOAST
       setToast({ message: "Nie udało się wykonać operacji.", type: "error" });
     }
   };
 
-  // Zwracamy Twój JSX (Widok 1 i Widok 2)
   if (selectedEvent) {
     return (
       <>
@@ -190,7 +185,6 @@ export default function AppointmentControlPanel({
           )}
         </div>
 
-        {/* 2. WYWOŁANIE TOASTU DLA WIDOKU SZCZEGÓŁÓW */}
         {toast && (
           <Toast
             message={toast.message}
@@ -308,7 +302,6 @@ export default function AppointmentControlPanel({
         </form>
       </div>
 
-      {/* 2. WYWOŁANIE TOASTU DLA WIDOKU FORMULARZA */}
       {toast && (
         <Toast
           message={toast.message}

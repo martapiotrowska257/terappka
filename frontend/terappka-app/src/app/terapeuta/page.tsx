@@ -1,4 +1,3 @@
-// src/app/terapeuta/page.tsx
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
@@ -6,7 +5,6 @@ import Link from "next/link";
 import { User } from "@/src/types/user";
 import { Appointment } from "@/src/types/appointment";
 
-// Funkcja pobierająca dane po stronie serwera (Wizyty + Pacjenci)
 async function getTherapistDashboardData(token: string) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
@@ -14,7 +12,7 @@ async function getTherapistDashboardData(token: string) {
     const [resAppts, resPatients] = await Promise.all([
       fetch(`${apiUrl}/api/appointments`, {
         headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store", // Zapobiega cache'owaniu nieaktualnego grafiku
+        cache: "no-store",
       }),
       fetch(`${apiUrl}/api/users?assigned_only=true`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -35,7 +33,6 @@ async function getTherapistDashboardData(token: string) {
   }
 }
 
-// Funkcja pomocnicza sprawdzająca, czy wizyta odbywa się dzisiaj (w lokalnej strefie czasowej)
 const isToday = (date: Date) => {
   const today = new Date();
   return (
@@ -46,20 +43,16 @@ const isToday = (date: Date) => {
 };
 
 export default async function TherapistDashboard() {
-  // 1. Pobranie sesji na serwerze
   const session = await getServerSession(authOptions);
 
-  // 2. Weryfikacja roli - wpuszczamy tylko terapeutów
   if (!session || !session.user?.roles?.includes("therapist")) {
     redirect("/login");
   }
 
-  // 3. Pobranie danych z backendu
   const { appointments, patients } = await getTherapistDashboardData(
     session.accessToken as string,
   );
 
-  // 4. Filtrowanie i sortowanie wszystkich wizyt TYLKO na dzisiaj (bez pustych slotów)
   const allTodaysAppointments = appointments
     .filter(
       (app: Appointment) =>
@@ -70,26 +63,22 @@ export default async function TherapistDashboard() {
         new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime(),
     );
 
-  // 5. Nowa logika wyświetlania: ograniczanie widoku przy napiętym grafiku
   const nowTime = new Date().getTime();
   let displayedAppointments = allTodaysAppointments;
 
   if (allTodaysAppointments.length > 5) {
     displayedAppointments = allTodaysAppointments.filter((app: Appointment) => {
-      const appEnd = new Date(app.dateTime).getTime() + 50 * 60 * 1000; // Koniec sesji (50 min)
-      // Zwracamy tylko wizyty, które kończą się teraz lub w przyszłości
+      const appEnd = new Date(app.dateTime).getTime() + 50 * 60 * 1000;
       return appEnd >= nowTime;
     });
   }
 
-  // Przygotowanie imienia terapeuty do powitania
   const userName =
     session.user.name || session.user.email?.split("@")[0] || "Terapeuto";
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-12">
       <div className="max-w-6xl mx-auto space-y-8">
-        {/* SEKCJA POWITALNA */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">
@@ -119,9 +108,7 @@ export default async function TherapistDashboard() {
           </div>
         </header>
 
-        {/* GŁÓWNY GRID WIDŻETÓW */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* WIDŻET 1: Dzisiejsze wizyty (Główna kolumna) */}
           <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-800">
@@ -147,10 +134,9 @@ export default async function TherapistDashboard() {
                 displayedAppointments.map((app: Appointment) => {
                   const appDate = new Date(app.dateTime);
                   const appStart = appDate.getTime();
-                  const appEnd = appStart + 50 * 60 * 1000; // sesja 50 min
+                  const appEnd = appStart + 50 * 60 * 1000;
                   const now = new Date().getTime();
 
-                  // Szukamy danych pacjenta z listy przypisanych
                   const patient = patients.find(
                     (p: User) => p.id === app.patientId,
                   );
@@ -161,12 +147,10 @@ export default async function TherapistDashboard() {
                     ? `${patient.firstName[0]}${patient.lastName[0]}`.toUpperCase()
                     : "??";
 
-                  // Dynamiczne ustalanie badgów i stylów karty
                   let badgeText = "Zaplanowana";
                   let badgeClass = "text-amber-600 bg-amber-50";
                   let cardClass = "border-gray-100 hover:border-emerald-200";
 
-                  // Czy wizyta trwa dokładnie teraz?
                   const isLive =
                     now >= appStart &&
                     now <= appEnd &&
@@ -249,9 +233,7 @@ export default async function TherapistDashboard() {
             </div>
           </div>
 
-          {/* BOCZNY PANEL */}
           <div className="space-y-6">
-            {/* WIDŻET 2: Szybkie akcje */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-gray-800 mb-4">
                 Szybkie akcje
@@ -282,7 +264,6 @@ export default async function TherapistDashboard() {
               </div>
             </div>
 
-            {/* WIDŻET 3: Status Systemu */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-gray-800 mb-4">
                 Informacje o bazie

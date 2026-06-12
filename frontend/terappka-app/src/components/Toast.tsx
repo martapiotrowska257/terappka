@@ -7,7 +7,7 @@ interface ToastProps {
   message: string;
   type: ToastMessageType;
   onClose: () => void;
-  duration?: number; // Opcjonalny czas trwania (domyślnie 3000ms)
+  duration?: number;
 }
 
 export default function Toast({
@@ -16,17 +16,14 @@ export default function Toast({
   onClose,
   duration = 3000,
 }: ToastProps) {
-  // Automatyczne zamykanie po upływie określonego czasu
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
     }, duration);
 
-    // Czyszczenie timera w przypadku wcześniejszego odmontowania komponentu
     return () => clearTimeout(timer);
   }, [onClose, duration]);
 
-  // Mapowanie typów na kolory i ikony
   const typeConfig = {
     success: {
       bg: "bg-emerald-50",

@@ -14,7 +14,6 @@ export default function TherapistCalendarPage() {
   const [patients, setPatients] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Stany przekazywane do panelu bocznego
   const [selectedEvent, setSelectedEvent] = useState<AppointmentEvent | null>(
     null,
   );
@@ -67,7 +66,7 @@ export default function TherapistCalendarPage() {
 
   const handleSlotSelect = (start: Date) => {
     setSelectedEvent(null);
-    setSelectedSlotDate(start); // Przekazujemy surową datę do komponentu formularza
+    setSelectedSlotDate(start);
   };
 
   const handleEventClick = (event: AppointmentEvent) => {

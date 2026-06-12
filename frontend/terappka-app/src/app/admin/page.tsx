@@ -1,15 +1,10 @@
-// src/app/admin/page.tsx
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 
 export default async function AdminDashboard() {
-  // Pobieramy sesję bezpośrednio na serwerze
   const session = await getServerSession(authOptions);
 
-  // Podwójne zabezpieczenie (Defense in Depth):
-  // Choć Middleware chroni tę ścieżkę, dobrą praktyką jest sprawdzenie
-  // uprawnień również tutaj, na wypadek błędnej konfiguracji Middleware.
   if (!session?.user?.roles?.includes("admin")) {
     redirect("/");
   }

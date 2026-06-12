@@ -1,7 +1,7 @@
 "use client";
 
 import { SessionProvider } from "next-auth/react";
-import SessionTimeoutWatcher from "./SessionTimeoutWatcher"; // <-- Importujemy strażnika
+import SessionTimeoutWatcher from "./SessionTimeoutWatcher";
 
 export default function SessionProviderWrapper({
   children,
@@ -10,7 +10,6 @@ export default function SessionProviderWrapper({
 }) {
   return (
     <SessionProvider>
-      {/* Strażnik sesji zaczyna nasłuchiwać globalnie w całej aplikacji */}
       <SessionTimeoutWatcher />
       {children}
     </SessionProvider>

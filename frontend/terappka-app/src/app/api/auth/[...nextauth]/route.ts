@@ -27,9 +27,7 @@ async function refreshAccessToken(token: any) {
     return {
       ...token,
       accessToken: refreshedTokens.access_token,
-      // Keycloak zwraca nowy expires_in (zazwyczaj znów 300 sekund)
       expiresAt: Date.now() + refreshedTokens.expires_in * 1000,
-      // Jeśli Keycloak wysłał nowy refresh token, aktualizujemy go. Jeśli nie, trzymamy stary.
       refreshToken: refreshedTokens.refresh_token ?? token.refreshToken,
     };
   } catch (error) {
@@ -86,9 +84,7 @@ export const authOptions: NextAuthOptions = {
             throw new Error(data.error_description || "Błąd logowania");
           }
 
-          // Dekodujemy access_token, aby wyciągnąć role
           const decodedToken = decodeJwt(data.access_token);
-          // Keycloak domyślnie trzyma role realmowe w: realm_access.roles
           const roles = decodedToken?.realm_access?.roles || [];
 
           return {
@@ -98,7 +94,7 @@ export const authOptions: NextAuthOptions = {
             accessToken: data.access_token,
             refreshToken: data.refresh_token,
             expiresIn: data.expires_in,
-            roles: roles, // <--- Przekazujemy role dalej
+            roles: roles,
 
             firstName: decodedToken?.given_name || "",
             lastName: decodedToken?.family_name || "",
@@ -116,7 +112,7 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.expiresAt = Date.now() + (user.expiresIn as number) * 1000;
-        token.roles = user.roles; // <--- Zapisujemy role w tokenie NextAuth
+        token.roles = user.roles;
         token.firstName = (user as User).firstName || "";
         token.lastName = (user as User).lastName || "";
         return token;
@@ -130,7 +126,6 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       session.accessToken = token.accessToken;
       session.error = token.error;
-      // <--- Przepisujemy role do widocznego obiektu sesji
       if (session.user) {
         session.user.roles = token.roles;
       }
