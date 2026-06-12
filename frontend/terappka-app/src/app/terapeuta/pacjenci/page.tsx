@@ -20,7 +20,18 @@ export default function TerapeutaPacjenciPage() {
   const [activeTab, setActiveTab] = useState<"my" | "all">("my");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
+  // Funkcja pomocnicza do wywoływania dymka
+  const showToast = (message: string, type: "success" | "error") => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+  };
   // Funkcja pobierająca dane z obu endpointów
   const fetchPatientsData = async () => {
     if (!session?.accessToken) return;
@@ -50,14 +61,14 @@ export default function TerapeutaPacjenciPage() {
     try {
       const res = await api.post(`/api/users/${patientId}/assign`);
       if (res.status === 200) {
-        alert("Pomyślnie przypisano pacjenta!");
-        // Po sukcesie odświeżamy obie listy, by interfejs od razu się zaktualizował
+        showToast("Pomyślnie przypisano pacjenta!", "success");
         await fetchPatientsData();
       }
     } catch (error: any) {
       console.error("Błąd przypisywania pacjenta:", error);
-      alert(
+      showToast(
         error.response?.data?.error || "Wystąpił błąd podczas przypisywania.",
+        "error",
       );
     } finally {
       setActionLoading(null);
@@ -182,6 +193,35 @@ export default function TerapeutaPacjenciPage() {
           </div>
         )}
       </div>
+      {toast && (
+        <div
+          className={`fixed top-6 right-6 z-[9999] px-6 py-4 rounded-xl shadow-lg border flex items-center gap-3 transform transition-all ${
+            toast.type === "success"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          }`}
+          style={{ animation: "slideInRight 0.3s ease-out forwards" }}
+        >
+          <span className="text-xl">
+            {toast.type === "success" ? "✅" : "⚠️"}
+          </span>
+          <p className="font-medium text-sm">{toast.message}</p>
+
+          {/* Animacja CSS dla wjazdu z prawej strony */}
+          <style jsx>{`
+            @keyframes slideInRight {
+              from {
+                opacity: 0;
+                transform: translateX(100%);
+              }
+              to {
+                opacity: 1;
+                transform: translateX(0);
+              }
+            }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 }
