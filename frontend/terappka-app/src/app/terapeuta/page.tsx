@@ -59,8 +59,8 @@ export default async function TherapistDashboard() {
     session.accessToken as string,
   );
 
-  // 4. Filtrowanie i sortowanie wizyt TYLKO na dzisiaj (pomijamy puste okienka AVAILABLE)
-  const todaysAppointments = appointments
+  // 4. Filtrowanie i sortowanie wszystkich wizyt TYLKO na dzisiaj (bez pustych slotów)
+  const allTodaysAppointments = appointments
     .filter(
       (app: Appointment) =>
         isToday(new Date(app.dateTime)) && app.status !== "AVAILABLE",
@@ -69,6 +69,18 @@ export default async function TherapistDashboard() {
       (a: Appointment, b: Appointment) =>
         new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime(),
     );
+
+  // 5. Nowa logika wyświetlania: ograniczanie widoku przy napiętym grafiku
+  const nowTime = new Date().getTime();
+  let displayedAppointments = allTodaysAppointments;
+
+  if (allTodaysAppointments.length > 5) {
+    displayedAppointments = allTodaysAppointments.filter((app: Appointment) => {
+      const appEnd = new Date(app.dateTime).getTime() + 50 * 60 * 1000; // Koniec sesji (50 min)
+      // Zwracamy tylko wizyty, które kończą się teraz lub w przyszłości
+      return appEnd >= nowTime;
+    });
+  }
 
   // Przygotowanie imienia terapeuty do powitania
   const userName =
@@ -86,7 +98,7 @@ export default async function TherapistDashboard() {
             <p className="text-gray-500 mt-2">
               Oto Twój grafik na dzisiaj. Masz zaplanowane{" "}
               <strong className="text-gray-700">
-                {todaysAppointments.length} wizyt
+                {allTodaysAppointments.length} wizyt
               </strong>
               .
             </p>
@@ -125,13 +137,14 @@ export default async function TherapistDashboard() {
             </div>
 
             <div className="space-y-4">
-              {todaysAppointments.length === 0 ? (
+              {displayedAppointments.length === 0 ? (
                 <div className="text-center py-12 text-gray-400 border border-dashed rounded-xl">
-                  Brak zaplanowanych pacjentów na dzisiaj. Odpocznij lub
-                  uzupełnij wolne terminy w grafiku!
+                  {allTodaysAppointments.length > 0
+                    ? "Wszystkie dzisiejsze wizyty zostały już zakończone."
+                    : "Brak zaplanowanych pacjentów na dzisiaj. Odpocznij lub uzupełnij wolne terminy w grafiku!"}
                 </div>
               ) : (
-                todaysAppointments.map((app: Appointment) => {
+                displayedAppointments.map((app: Appointment) => {
                   const appDate = new Date(app.dateTime);
                   const appStart = appDate.getTime();
                   const appEnd = appStart + 50 * 60 * 1000; // sesja 50 min
