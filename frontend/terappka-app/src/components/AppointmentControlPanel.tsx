@@ -72,6 +72,9 @@ export default function AppointmentControlPanel({
     const targetEnd = targetTime + 50 * 60 * 1000;
 
     const hasConflict = events.some((ev) => {
+      if (ev.status === "CANCELLED" || ev.status === "NO_SHOW") {
+        return false;
+      }
       const evStart = ev.start.getTime();
       const evEnd = ev.end.getTime();
       return targetTime < evEnd && targetEnd > evStart;
