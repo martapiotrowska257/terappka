@@ -42,6 +42,7 @@ export default function AppointmentControlPanel({
   );
   const [formPatientId, setFormPatientId] = useState("");
   const [formDescription, setFormDescription] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
 
   const [prevSlotDate, setPrevSlotDate] = useState<Date | null>(
     selectedSlotDate,
@@ -52,11 +53,13 @@ export default function AppointmentControlPanel({
     if (selectedSlotDate) {
       setFormDate(formatDateToISO(selectedSlotDate));
       setFormTime(formatTimeToHHMM(selectedSlotDate));
+      setFormError(null);
     }
   }
 
   const handleCreateAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
 
     const targetTime = new Date(`${formDate}T${formTime}`).getTime();
     const targetEnd = targetTime + 50 * 60 * 1000;
@@ -68,9 +71,7 @@ export default function AppointmentControlPanel({
     });
 
     if (hasConflict) {
-      alert(
-        "⚠️ Konflikt czasu! Masz już zaplanowane spotkanie lub wolny termin w tych godzinach.",
-      );
+      setFormError("Masz już zaplanowane spotkanie w tych godzinach.");
       return;
     }
 
@@ -85,7 +86,9 @@ export default function AppointmentControlPanel({
       alert("✅ Dodano do kalendarza!");
       onRefresh(); // Odświeżamy dane w głównym komponencie
     } catch (error: any) {
-      alert(error.response?.data?.error || "Wystąpił błąd podczas dodawania.");
+      setFormError(
+        error.response?.data?.error || "Wystąpił błąd podczas dodawania.",
+      );
     }
   };
 
@@ -224,7 +227,10 @@ export default function AppointmentControlPanel({
               type="date"
               required
               value={formDate}
-              onChange={(e) => setFormDate(e.target.value)}
+              onChange={(e) => {
+                setFormDate(e.target.value);
+                setFormError(null);
+              }}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
             />
           </div>
@@ -236,11 +242,19 @@ export default function AppointmentControlPanel({
               type="time"
               required
               value={formTime}
-              onChange={(e) => setFormTime(e.target.value)}
+              onChange={(e) => {
+                setFormTime(e.target.value);
+                setFormError(null);
+              }}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm"
             />
           </div>
         </div>
+        {formError && (
+          <div className="text-sm font-medium text-red-600 bg-red-50 p-3 rounded-lg border border-red-100 flex items-start gap-2">
+            <p className="leading-snug">{formError}</p>
+          </div>
+        )}
 
         {formMode === "SCHEDULED" && (
           <div>
