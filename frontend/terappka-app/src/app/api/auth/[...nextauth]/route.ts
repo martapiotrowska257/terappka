@@ -2,7 +2,45 @@ import { User } from "@/src/types/user";
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-// Funkcja pomocnicza do dekodowania tokena JWT bez zewnętrznych bibliotek
+async function refreshAccessToken(token: any) {
+  try {
+    const url = `${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`;
+    const payload = new URLSearchParams({
+      client_id: process.env.KEYCLOAK_CLIENT_ID!,
+      client_secret: process.env.KEYCLOAK_CLIENT_SECRET!,
+      grant_type: "refresh_token",
+      refresh_token: token.refreshToken,
+    });
+
+    const response = await fetch(url, {
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      method: "POST",
+      body: payload,
+    });
+
+    const refreshedTokens = await response.json();
+
+    if (!response.ok) {
+      throw refreshedTokens;
+    }
+
+    return {
+      ...token,
+      accessToken: refreshedTokens.access_token,
+      // Keycloak zwraca nowy expires_in (zazwyczaj znów 300 sekund)
+      expiresAt: Date.now() + refreshedTokens.expires_in * 1000,
+      // Jeśli Keycloak wysłał nowy refresh token, aktualizujemy go. Jeśli nie, trzymamy stary.
+      refreshToken: refreshedTokens.refresh_token ?? token.refreshToken,
+    };
+  } catch (error) {
+    console.error("Błąd podczas odświeżania tokenu:", error);
+    return {
+      ...token,
+      error: "RefreshAccessTokenError",
+    };
+  }
+}
+
 const decodeJwt = (token: string) => {
   try {
     return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
@@ -81,8 +119,13 @@ export const authOptions: NextAuthOptions = {
         token.roles = user.roles; // <--- Zapisujemy role w tokenie NextAuth
         token.firstName = (user as User).firstName || "";
         token.lastName = (user as User).lastName || "";
+        return token;
       }
-      return token;
+      if (Date.now() < (token.expiresAt as number) - 10000) {
+        return token;
+      }
+
+      return await refreshAccessToken(token);
     },
     async session({ session, token }) {
       session.accessToken = token.accessToken;
