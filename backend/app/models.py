@@ -64,13 +64,13 @@ class Appointment(db.Model):
             'id': self.id,
             'patientId': self.patient_id,
             'therapistId': self.therapist_id,
-            'dateTime': self.date_time.isoformat(),
+            'dateTime': self.date_time.isoformat() + 'Z',
             'status': self.status,
             'description': self.description,
             'cancellationReason': self.cancellation_reason,
             'outcomeNotes': self.outcome_notes,
-            'createdAt': self.createdAt.isoformat() if self.createdAt else None,
-            'updatedAt': self.updatedAt.isoformat() if self.updatedAt else None
+            'createdAt': self.createdAt.isoformat() + 'Z' if self.createdAt else None,
+            'updatedAt': self.updatedAt.isoformat() + 'Z' if self.updatedAt else None
         }
     
 class Diary(db.Model):
