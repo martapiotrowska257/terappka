@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import type { User } from "../types/user";
+import api from "@/src/lib/api";
+import { User } from "../types/user";
 
 export default function AddAppointmentModal({
   onClose,
@@ -11,7 +11,6 @@ export default function AddAppointmentModal({
   onClose: () => void;
   onAdded: () => void;
 }) {
-  const { data: session } = useSession();
   const [patients, setPatients] = useState<User[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState("");
   const [date, setDate] = useState("");
@@ -20,27 +19,18 @@ export default function AddAppointmentModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // Pobieranie listy pacjentów po otwarciu modalu
   useEffect(() => {
     const fetchPatients = async () => {
-      if (!session?.accessToken) return;
       try {
-        const res = await fetch(
-          `${process.env.API_URL || "http://localhost:5000"}/api/users`,
-          {
-            headers: { Authorization: `Bearer ${session.accessToken}` },
-          },
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setPatients(data);
-        }
+        const res = await api.get("/api/users?assigned_only=true");
+        setPatients(res.data);
       } catch (err) {
         console.error("Błąd pobierania pacjentów:", err);
+        setError("Nie udało się pobrać listy pacjentów.");
       }
     };
     fetchPatients();
-  }, [session]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,34 +38,20 @@ export default function AddAppointmentModal({
     setIsSubmitting(true);
 
     try {
-      // Łączenie daty i czasu do formatu ISO
+      // Łączenie daty i czasu do formatu ISO (wymagane przez bazę)
       const dateTimeIso = new Date(`${date}T${time}`).toISOString();
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/appointments`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.accessToken}`,
-          },
-          body: JSON.stringify({
-            patientId: selectedPatientId,
-            dateTime: dateTimeIso,
-            description: description,
-          }),
-        },
-      );
+      await api.post("/api/appointments", {
+        patientId: selectedPatientId,
+        dateTime: dateTimeIso,
+        description: description,
+      });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Nie udało się zapisać wizyty");
-      }
-
-      onAdded(); // Odśwież kalendarz
-      onClose(); // Zamknij modal
+      onAdded();
+      onClose();
     } catch (err: any) {
-      setError(err.message);
+      console.error(err);
+      setError(err.response?.data?.error || "Nie udało się zapisać wizyty");
     } finally {
       setIsSubmitting(false);
     }
@@ -114,6 +90,11 @@ export default function AddAppointmentModal({
                 </option>
               ))}
             </select>
+            {patients.length === 0 && !error && (
+              <p className="text-xs text-amber-600 mt-1">
+                Nie masz przypisanych pacjentów. Dodaj ich w panelu zarządzania.
+              </p>
+            )}
           </div>
 
           <div className="flex gap-4">
@@ -165,7 +146,7 @@ export default function AddAppointmentModal({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || patients.length === 0}
               className="px-4 py-2 text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 font-medium disabled:opacity-50"
             >
               {isSubmitting ? "Zapisywanie..." : "Zaplanuj wizytę"}
