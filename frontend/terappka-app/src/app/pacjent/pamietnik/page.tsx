@@ -173,7 +173,7 @@ export default function PamietnikPage() {
           <div className="mt-8 flex items-center justify-between">
             <div className="font-serif text-sm">
               {saveStatus === "success" && (
-                <span className="text-emerald-600 font-medium animate-pulse">
+                <span className="text-emerald-600 font-medium">
                   ✓ Pomyślnie zapisano wpis!
                 </span>
               )}

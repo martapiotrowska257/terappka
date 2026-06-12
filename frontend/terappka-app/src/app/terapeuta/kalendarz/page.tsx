@@ -89,7 +89,7 @@ export default function TherapistCalendarPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           {isLoading ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-[600px] flex items-center justify-center text-emerald-600 animate-pulse">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-[600px] flex items-center justify-center text-emerald-600">
               Ładowanie kalendarza...
             </div>
           ) : (
