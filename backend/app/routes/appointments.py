@@ -148,3 +148,17 @@ def reschedule_appointment(id):
             return jsonify({'error': 'Błędny format daty'}), 400
 
     return jsonify({'error': 'Brak nowej daty'}), 400
+
+@appointments_bp.route('/api/appointments/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_appointment(id):
+    current_user = get_current_user_from_token()
+    appointment = Appointment.query.get_or_404(id)
+
+    # Upewniamy się, że to terapeuta usuwa swój własny termin (lub robi to admin)
+    if current_user.role != User.ROLE_ADMIN and appointment.therapist_id != current_user.id:
+        return jsonify({'error': 'Brak uprawnień do usunięcia tej wizyty'}), 403
+
+    db.session.delete(appointment)
+    db.session.commit()
+    return '', 204
