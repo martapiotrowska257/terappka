@@ -28,7 +28,7 @@ export default function LoginButton() {
 
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="px-4 py-2 text-sm font-medium text-emerald-700 bg-white rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 focus:ring-offset-emerald-500 transition-colors shadow-sm"
+          className="px-4 py-2 text-sm font-medium text-emerald-700 bg-white rounded-lg hover: focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 focus:ring-offset-emerald-500 transition-colors shadow-sm"
         >
           Wyloguj
         </button>
@@ -39,7 +39,7 @@ export default function LoginButton() {
   return (
     <Link
       href="/login"
-      className="px-6 py-2 text-sm font-medium text-emerald-700 bg-white rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 focus:ring-offset-emerald-500 shadow-sm transition-colors"
+      className="px-6 py-2 text-sm font-medium text-emerald-700 bg-white rounded-lg hover: focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 focus:ring-offset-emerald-500 shadow-sm transition-colors"
     >
       Zaloguj się
     </Link>

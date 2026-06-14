@@ -34,7 +34,7 @@ export default function AfirmacjePage() {
   };
 
   return (
-    <div className=" bg-gray-50 p-6 md:p-12">
+    <div className="  p-6 md:p-12">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* NAGŁÓWEK */}
         <header className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 text-center relative overflow-hidden">

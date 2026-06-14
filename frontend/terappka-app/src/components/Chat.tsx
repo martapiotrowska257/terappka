@@ -111,7 +111,7 @@ export default function Chat({ otherUserId, otherUserName }: ChatProps) {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50 h-[500px] rounded-xl border border-gray-100">
+      <div className="flex-1 flex items-center justify-center  h-[500px] rounded-xl border border-gray-100">
         <div className="text-emerald-600 font-medium animate-pulse">
           Ładowanie czatu...
         </div>
@@ -122,7 +122,7 @@ export default function Chat({ otherUserId, otherUserName }: ChatProps) {
   return (
     <div className="flex flex-col h-[600px] bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Nagłówek czatu */}
-      <header className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+      <header className="px-6 py-4 border-b border-gray-100 /50 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold">
             {otherUserName.charAt(0).toUpperCase()}
@@ -142,7 +142,7 @@ export default function Chat({ otherUserId, otherUserName }: ChatProps) {
       </header>
 
       {/* Główne okno wiadomości */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/30">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 /30">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-gray-400">
             <span className="text-4xl mb-3">💬</span>
@@ -197,7 +197,7 @@ export default function Chat({ otherUserId, otherUserName }: ChatProps) {
             }}
             placeholder="Wpisz wiadomość..."
             disabled={!isConnected}
-            className="flex-1 max-h-32 min-h-[50px] px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none resize-none text-sm transition-colors disabled:opacity-50"
+            className="flex-1 max-h-32 min-h-[50px] px-4 py-3  border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none resize-none text-sm transition-colors disabled:opacity-50"
             rows={1}
           />
           <button

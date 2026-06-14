@@ -2,7 +2,7 @@ import React from "react";
 
 export default function ContactUs() {
   return (
-    <div className=" bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="  py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
@@ -26,7 +26,7 @@ export default function ContactUs() {
           <div className="lg:col-span-2 bg-white p-8 rounded-2xl shadow-md border border-gray-100">
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
               <div className="xl:col-span-1 space-y-6">
-                <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 flex items-start space-x-4">
+                <div className=" p-5 rounded-xl border border-gray-100 flex items-start space-x-4">
                   <div className="bg-blue-100 p-3 rounded-lg text-blue-600 shrink-0">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -54,7 +54,7 @@ export default function ContactUs() {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 flex items-start space-x-4">
+                <div className=" p-5 rounded-xl border border-gray-100 flex items-start space-x-4">
                   <div className="bg-green-100 p-3 rounded-lg text-green-600 shrink-0">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -84,7 +84,7 @@ export default function ContactUs() {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 flex items-start space-x-4">
+                <div className=" p-5 rounded-xl border border-gray-100 flex items-start space-x-4">
                   <div className="bg-purple-100 p-3 rounded-lg text-purple-600 shrink-0">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

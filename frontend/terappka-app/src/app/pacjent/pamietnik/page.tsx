@@ -98,7 +98,7 @@ export default function PamietnikPage() {
   const isCurrentDay = isToday(selectedDate);
 
   return (
-    <div className=" bg-gray-50 py-12 px-4 sm:px-6 flex flex-col justify-center items-center">
+    <div className="  py-12 px-4 sm:px-6 flex flex-col justify-center items-center">
       <div className="w-full max-w-3xl flex justify-center items-center gap-4 md:gap-12 mb-8 font-serif text-gray-500">
         <button
           onClick={() => setSelectedDate(prevDate)}

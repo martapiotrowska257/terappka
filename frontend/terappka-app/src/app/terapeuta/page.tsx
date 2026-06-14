@@ -77,7 +77,7 @@ export default async function TherapistDashboard() {
     session.user.name || session.user.email?.split("@")[0] || "Terapeuto";
 
   return (
-    <div className=" bg-gray-50 p-6 md:p-12">
+    <div className="  p-6 md:p-12">
       <div className="max-w-6xl mx-auto space-y-8">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <div>
@@ -220,7 +220,7 @@ export default async function TherapistDashboard() {
                         ) : (
                           <Link
                             href="/terapeuta/kalendarz"
-                            className="px-4 py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg font-medium transition-colors border border-gray-200"
+                            className="px-4 py-2 text-sm text-gray-600  hover:bg-gray-100 rounded-lg font-medium transition-colors border border-gray-200"
                           >
                             Zarządzaj
                           </Link>

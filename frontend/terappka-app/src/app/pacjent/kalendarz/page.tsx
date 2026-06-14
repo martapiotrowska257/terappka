@@ -145,7 +145,7 @@ export default function PatientCalendarPage() {
   };
 
   return (
-    <div className=" bg-gray-50 p-6 md:p-12">
+    <div className="  p-6 md:p-12">
       <div className="max-w-6xl mx-auto space-y-6">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div>
@@ -320,7 +320,7 @@ export default function PatientCalendarPage() {
                       <div className="text-xs text-gray-500 uppercase tracking-wide mt-2">
                         Notatki dla pacjenta
                       </div>
-                      <div className="font-medium text-sm mt-1 p-3 rounded-lg bg-gray-50 border border-gray-100 text-gray-700">
+                      <div className="font-medium text-sm mt-1 p-3 rounded-lg  border border-gray-100 text-gray-700">
                         {selectedEvent.description}
                       </div>
                     </div>

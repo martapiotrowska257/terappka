@@ -35,7 +35,7 @@ export default function PatientChatPage() {
   }, [session]);
 
   return (
-    <div className=" bg-gray-50 p-6 md:p-12">
+    <div className="  p-6 md:p-12">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* NAGŁÓWEK STRONY */}
         <header className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
@@ -66,7 +66,7 @@ export default function PatientChatPage() {
         ) : (
           /* WIDOK GDY PACJENT NIE MA TERAPEUTY */
           <div className="bg-white h-[500px] rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center p-8">
-            <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center text-5xl mb-6 shadow-inner">
+            <div className="w-24 h-24  rounded-full flex items-center justify-center text-5xl mb-6 shadow-inner">
               📭
             </div>
             <h2 className="text-2xl font-bold text-gray-800 mb-3">

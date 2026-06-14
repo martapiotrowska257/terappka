@@ -36,7 +36,7 @@ export default function TherapistChatPage() {
   }, [session]);
 
   return (
-    <div className=" bg-gray-50 p-6 md:p-12">
+    <div className="  p-6 md:p-12">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* NAGŁÓWEK */}
         <header className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
@@ -73,7 +73,7 @@ export default function TherapistChatPage() {
                     className={`w-full text-left p-3 rounded-xl transition-all border ${
                       selectedPatient?.id === patient.id
                         ? "bg-emerald-50 border-emerald-200 text-emerald-800 shadow-sm"
-                        : "bg-white hover:bg-gray-50 text-gray-700 border-transparent hover:border-gray-100"
+                        : "bg-white hover: text-gray-700 border-transparent hover:border-gray-100"
                     }`}
                   >
                     <div className="font-medium text-sm">
@@ -99,7 +99,7 @@ export default function TherapistChatPage() {
             ) : (
               /* WIDOK ZACHĘCAJĄCY DO WYBORU PACJENTA */
               <div className="bg-white h-[600px] rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center p-8">
-                <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center text-5xl mb-6 shadow-inner">
+                <div className="w-24 h-24  rounded-full flex items-center justify-center text-5xl mb-6 shadow-inner">
                   💬
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-3">

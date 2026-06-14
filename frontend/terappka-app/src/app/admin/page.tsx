@@ -10,7 +10,7 @@ export default async function AdminDashboard() {
   }
 
   return (
-    <div className=" bg-gray-50 p-8">
+    <div className="  p-8">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md p-6 border-t-4 border-red-500">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
           Panel Administratora

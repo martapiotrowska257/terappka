@@ -80,7 +80,7 @@ export default async function PatientDashboard() {
     : "??";
 
   return (
-    <div className=" bg-gray-50 p-6 md:p-12">
+    <div className="  p-6 md:p-12">
       <div className="max-w-5xl mx-auto space-y-8">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <div>
@@ -113,7 +113,7 @@ export default async function PatientDashboard() {
             </div>
 
             {nextVisit ? (
-              <div className="flex items-start gap-4 p-4 border border-gray-100 rounded-xl bg-gray-50/50">
+              <div className="flex items-start gap-4 p-4 border border-gray-100 rounded-xl /50">
                 <div className="flex flex-col items-center justify-center bg-white border border-gray-200 rounded-lg w-16 h-16 shrink-0">
                   <span className="text-sm font-bold text-red-500">
                     {new Date(nextVisit.dateTime)
@@ -186,8 +186,8 @@ export default async function PatientDashboard() {
                 href={therapist?.id ? "/pacjent/czat" : "#"}
                 className={`w-full py-2.5 text-sm font-medium text-center rounded-xl transition-colors block border ${
                   therapist?.id
-                    ? "text-gray-700 bg-white border-gray-300 hover:bg-gray-50"
-                    : "text-gray-400 bg-gray-50 border-gray-200 cursor-not-allowed pointer-events-none"
+                    ? "text-gray-700 bg-white border-gray-300 hover:"
+                    : "text-gray-400  border-gray-200 cursor-not-allowed pointer-events-none"
                 }`}
               >
                 Wyślij wiadomość
