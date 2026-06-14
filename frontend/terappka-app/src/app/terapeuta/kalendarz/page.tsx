@@ -8,8 +8,11 @@ import AppointmentControlPanel from "@/src/components/AppointmentControlPanel";
 import api from "@/src/lib/api";
 import type { Appointment, AppointmentStatus } from "@/src/types/appointment";
 import type { User } from "@/src/types/user";
+import io from "socket.io-client";
+import { useSession } from "next-auth/react";
 
 export default function TherapistCalendarPage() {
+  const { data: session } = useSession();
   const [events, setEvents] = useState<AppointmentEvent[]>([]);
   const [patients, setPatients] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,8 +22,10 @@ export default function TherapistCalendarPage() {
   );
   const [selectedSlotDate, setSelectedSlotDate] = useState<Date | null>(null);
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
+  const fetchData = useCallback(async (isSilent = false) => {
+    if (!isSilent) {
+      setIsLoading(true); // Ekran ładowania blokuje widok TYLKO przy pierwszym wejściu
+    }
     try {
       const resPatients = await api.get("/api/users?assigned_only=true");
       setPatients(resPatients.data);
@@ -59,13 +64,39 @@ export default function TherapistCalendarPage() {
     } catch (error) {
       console.error("Błąd pobierania danych:", error);
     } finally {
-      setIsLoading(false);
+      if (!isSilent) {
+        setIsLoading(false); // Zdejmujemy loader TYLKO jeśli to nie było ciche odświeżanie
+      }
     }
   }, []);
 
+  // --- LOGIKA WEBSOCKET: Reaktywny kalendarz ---
   useEffect(() => {
-    fetchData();
+    fetchData(false);
   }, [fetchData]);
+
+  // 2. Nasłuchiwanie na WebSockety (CICHE - odświeżenie w tle)
+  useEffect(() => {
+    if (!session?.accessToken) return;
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+    const socket = io(apiUrl, { transports: ["websocket"] });
+
+    socket.on("connect", () => {
+      socket.emit("authenticate", { token: session.accessToken });
+    });
+
+    socket.on("calendar_updated", () => {
+      console.log(
+        "🔄 Otrzymano sygnał z backendu! Odświeżam kalendarz w tle...",
+      );
+      fetchData(true); // Przekazujemy TRUE, kalendarz nie zniknie z ekranu!
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [session, fetchData]);
 
   const handleSlotSelect = (start: Date) => {
     setSelectedEvent(null);

@@ -8,6 +8,8 @@ import api from "@/src/lib/api";
 import Toast from "@/src/components/Toast"; // <-- Importujemy Twój komponent Toast
 import type { Appointment, AppointmentStatus } from "@/src/types/appointment";
 import { formatDate } from "@/src/lib/time";
+import io from "socket.io-client";
+import { useSession } from "next-auth/react";
 
 const formatTime = (date: Date) => {
   return date.toLocaleTimeString("pl-PL", {
@@ -17,6 +19,8 @@ const formatTime = (date: Date) => {
 };
 
 export default function PatientCalendarPage() {
+  const { data: session } = useSession();
+
   const [events, setEvents] = useState<AppointmentEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<AppointmentEvent | null>(
@@ -35,8 +39,10 @@ export default function PatientCalendarPage() {
   } | null>(null);
 
   // Pobieranie grafiku pacjenta
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
+  const fetchData = useCallback(async (isSilent = false) => {
+    if (!isSilent) {
+      setIsLoading(true); // Ekran ładowania blokuje widok TYLKO przy pierwszym wejściu
+    }
     try {
       const res = await api.get("/api/appointments");
 
@@ -69,13 +75,38 @@ export default function PatientCalendarPage() {
     } catch (error) {
       console.error("Błąd pobierania wizyt:", error);
     } finally {
-      setIsLoading(false);
+      if (!isSilent) {
+        setIsLoading(false); // Zdejmujemy loader TYLKO jeśli to nie było ciche odświeżanie
+      }
     }
   }, []);
 
   useEffect(() => {
-    fetchData();
+    fetchData(false);
   }, [fetchData]);
+
+  // --- LOGIKA WEBSOCKET: Reaktywny kalendarz ---
+  useEffect(() => {
+    if (!session?.accessToken) return;
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+    const socket = io(apiUrl, { transports: ["websocket"] });
+
+    socket.on("connect", () => {
+      socket.emit("authenticate", { token: session.accessToken });
+    });
+
+    socket.on("calendar_updated", () => {
+      console.log(
+        "🔄 Otrzymano sygnał z backendu! Odświeżam kalendarz w tle...",
+      );
+      fetchData(true); // Przekazujemy TRUE, kalendarz nie zniknie z ekranu!
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [session, fetchData]);
 
   // Funkcja otwierająca szczegóły wizyty (resetuje stany odwołania)
   const handleEventClick = (event: AppointmentEvent) => {
