@@ -37,6 +37,12 @@ export default function Header() {
               >
                 Mój Panel
               </Link>
+              <Link
+                href={dashboardLink + "/czat"}
+                className="hidden sm:block text-emerald-50 font-medium hover:text-white transition-colors"
+              >
+                Czat
+              </Link>
             </>
           ) : (
             <>
