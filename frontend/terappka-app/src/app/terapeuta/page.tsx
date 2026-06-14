@@ -44,6 +44,25 @@ const isToday = (date: Date) => {
 
 export default async function TherapistDashboard() {
   const session = await getServerSession(authOptions);
+  const getAppointmentsLabel = (count: number) => {
+    if (count === 1) return "wizytę";
+
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+
+    // Łapie liczby kończące się na 2, 3, 4 (np. 2, 3, 4, 22, 23, 24, 32...)
+    // Oprócz tych kończących się na 12, 13, 14 (np. 12 wizyt, 113 wizyt)
+    if (
+      lastDigit >= 2 &&
+      lastDigit <= 4 &&
+      (lastTwoDigits < 12 || lastTwoDigits > 14)
+    ) {
+      return "wizyty";
+    }
+
+    // W każdym innym przypadku (0, 5-21, 25-31 itd.)
+    return "wizyt";
+  };
 
   if (!session || !session.user?.roles?.includes("therapist")) {
     redirect("/login");
@@ -87,7 +106,12 @@ export default async function TherapistDashboard() {
             <p className="text-gray-500 mt-2">
               Oto Twój grafik na dzisiaj. Masz zaplanowane{" "}
               <strong className="text-gray-700">
-                {allTodaysAppointments.length} wizyt
+                {allTodaysAppointments && (
+                  <span>
+                    {allTodaysAppointments.length}{" "}
+                    {getAppointmentsLabel(allTodaysAppointments.length)}
+                  </span>
+                )}
               </strong>
               .
             </p>
