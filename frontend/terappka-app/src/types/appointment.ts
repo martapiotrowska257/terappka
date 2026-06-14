@@ -1,12 +1,22 @@
 export type Appointment = {
-  id: string;
-  patient_id?: string;
-  therapist_id?: string;
-  datetime?: string;
-  status?: string;
+  id: string | number;
+  patientId?: string;
+  therapistId?: string;
+  dateTime: string;
+  status: AppointmentStatus;
   description?: string;
-  cancellation_reason?: string;
-  outcome_notes?: string;
+  cancellationReason?: string;
+  outcomeNotes?: string;
+  duration?: number;
   createdAt?: string;
   updatedAt?: string;
+  therapistName?: string;
 };
+
+export type AppointmentStatus =
+  | "AVAILABLE"
+  | "SCHEDULED"
+  | "CONFIRMED"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "NO_SHOW";

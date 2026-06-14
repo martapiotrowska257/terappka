@@ -1,94 +1,120 @@
-// src/app/terapeuta/kalendarz/page.tsx
 "use client";
 
-import { useState } from "react";
-import ScheduleCalendar, { AppointmentEvent } from "@/src/components/ScheduleCalendar";
-// 1. Importujemy nasz nowy modal
-import AddAppointmentModal from "@/src/components/AddAppointmentModal";
+import { useState, useEffect, useCallback } from "react";
+import ScheduleCalendar, {
+  AppointmentEvent,
+} from "@/src/components/ScheduleCalendar";
+import AppointmentControlPanel from "@/src/components/AppointmentControlPanel";
+import api from "@/src/lib/api";
+import type { Appointment, AppointmentStatus } from "@/src/types/appointment";
+import type { User } from "@/src/types/user";
 
 export default function TherapistCalendarPage() {
-    // Stan do kontrolowania widoczności okienka (modala)
-    const [isModalOpen, setIsModalOpen] = useState(false);
+  const [events, setEvents] = useState<AppointmentEvent[]>([]);
+  const [patients, setPatients] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-    // Na początku to będą atrapy danych (MOCKi), docelowo pobierzesz je z bazy (np. useEffect / React Query)
-    const [events, setEvents] = useState<AppointmentEvent[]>([
-        {
-            id: "1",
-            title: "Wizyta: Jan Nowak",
-            start: new Date(new Date().setHours(10, 0, 0, 0)),
-            end: new Date(new Date().setHours(11, 0, 0, 0)),
-            status: "BOOKED",
-            patientName: "Jan Nowak"
+  const [selectedEvent, setSelectedEvent] = useState<AppointmentEvent | null>(
+    null,
+  );
+  const [selectedSlotDate, setSelectedSlotDate] = useState<Date | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const resPatients = await api.get("/api/users?assigned_only=true");
+      setPatients(resPatients.data);
+
+      const resAppointments = await api.get("/api/appointments");
+      const mappedEvents: AppointmentEvent[] = resAppointments.data.map(
+        (app: Appointment) => {
+          const dateString = app.dateTime.endsWith("Z")
+            ? app.dateTime
+            : `${app.dateTime}Z`;
+          const startDate = new Date(dateString);
+          const endDate = new Date(
+            startDate.getTime() + (app.duration || 50) * 60 * 1000,
+          );
+
+          const patientInfo = resPatients.data.find(
+            (p: User) => p.id === app.patientId,
+          );
+          const pName = patientInfo
+            ? `${patientInfo.firstName} ${patientInfo.lastName}`
+            : "Nieznany pacjent";
+
+          return {
+            id: String(app.id),
+            title:
+              app.status === "AVAILABLE" ? "Wolny termin" : `Sesja: ${pName}`,
+            start: startDate,
+            end: endDate,
+            status: app.status as AppointmentStatus,
+            patientName: pName,
+            description: app.description,
+          };
         },
-        {
-            id: "2",
-            title: "Wolny termin",
-            start: new Date(new Date().setHours(13, 0, 0, 0)),
-            end: new Date(new Date().setHours(14, 0, 0, 0)),
-            status: "AVAILABLE",
-        }
-    ]);
+      );
+      setEvents(mappedEvents);
+    } catch (error) {
+      console.error("Błąd pobierania danych:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-    // Funkcja dodawania nowego okienka dostępności przez kliknięcie na kalendarz
-    const handleAddAvailability = (start: Date, end: Date) => {
-        const newEvent: AppointmentEvent = {
-            id: Math.random().toString(), // Tymczasowe ID
-            title: "Wolny termin",
-            start,
-            end,
-            status: "AVAILABLE"
-        };
-        setEvents([...events, newEvent]);
-        // TODO: Tutaj będzie strzał do backendu np. POST /api/appointments
-    };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-    // Funkcja odwoływania wizyty / usuwania okienka
-    const handleCancelEvent = (eventId: string) => {
-        setEvents(events.filter(e => e.id !== eventId));
-        // TODO: Tutaj będzie strzał do backendu np. DELETE /api/appointments/{id}
-    };
+  const handleSlotSelect = (start: Date) => {
+    setSelectedEvent(null);
+    setSelectedSlotDate(start);
+  };
 
-    // Funkcja odświeżająca listę po dodaniu wizyty przez formularz
-    const fetchAppointments = () => {
-        // TODO: W przyszłości tutaj zrobisz ponowne pobranie wizyt z API (GET /api/appointments)
-        // aby kalendarz zaktualizował się o nowo dodaną z poziomu modala wizytę
-        console.log("Odświeżam kalendarz, bo dodano nową wizytę...");
-    };
+  const handleEventClick = (event: AppointmentEvent) => {
+    setSelectedEvent(event);
+  };
 
-    return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-6xl mx-auto space-y-6">
-                <header className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-800">Twój Grafiki i Wizyty</h1>
-                        <p className="text-gray-500 text-sm">
-                            Zaznacz puste pole w kalendarzu, aby dodać godziny pracy lub przypisz pacjenta ręcznie.
-                        </p>
-                    </div>
-                    {/* 2. Przycisk otwierający okienko formularza */}
-                    <button 
-                        onClick={() => setIsModalOpen(true)}
-                        className="px-5 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 shadow-md transition-colors flex items-center gap-2"
-                    >
-                        <span>+ Zaplanuj wizytę</span>
-                    </button>
-                </header>
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <header className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">
+          Zarządzanie Grafikiem
+        </h1>
+        <p className="text-gray-500 text-sm">
+          Zaznacz godzinę na kalendarzu i dodaj spotkanie w panelu po prawej
+          stronie.
+        </p>
+      </header>
 
-                <ScheduleCalendar 
-                    events={events} 
-                    isTherapist={true} 
-                    onBookSlot={handleAddAvailability}
-                    onCancelEvent={handleCancelEvent}
-                />
-
-                {/* 3. Wyświetlanie modala warunkowo (tylko gdy isModalOpen === true) */}
-                {isModalOpen && (
-                    <AddAppointmentModal 
-                        onClose={() => setIsModalOpen(false)} 
-                        onAdded={fetchAppointments} 
-                    />
-                )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          {isLoading ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-[600px] flex items-center justify-center text-emerald-600">
+              Ładowanie kalendarza...
             </div>
+          ) : (
+            <ScheduleCalendar
+              events={events}
+              isTherapist={true}
+              onSlotSelect={handleSlotSelect}
+              onEventClick={handleEventClick}
+            />
+          )}
         </div>
-    );
+
+        <div className="lg:col-span-1 flex flex-col gap-4">
+          <AppointmentControlPanel
+            selectedEvent={selectedEvent}
+            selectedSlotDate={selectedSlotDate}
+            events={events}
+            patients={patients}
+            onCloseEvent={() => setSelectedEvent(null)}
+            onRefresh={fetchData}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }

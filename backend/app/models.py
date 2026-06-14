@@ -13,6 +13,8 @@ class User(db.Model):
     first_name = db.Column(db.String(255))
     last_name = db.Column(db.String(255))
     role = db.Column(db.String(50), default=ROLE_PATIENT)
+    therapist_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
+    assigned_patients = db.relationship('User', backref=db.backref('assigned_therapist', remote_side=[id]))
     appointments_as_patient = db.relationship('Appointment', foreign_keys='Appointment.patient_id', back_populates='patient')
     diaries = db.relationship('Diary', back_populates='patient')
     createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -25,10 +27,9 @@ class User(db.Model):
             'firstName': self.first_name,
             'lastName': self.last_name,
             'role': self.role,
-            'appointmentsAsPatient': self.appointments_as_patient,
-            'diaries': self.diaries,
+            'therapistId': getattr(self ,'therapist_id', None),
             'createdAt': self.createdAt.isoformat() if self.createdAt else None,
-            'updatedAt': self.updatedAt.isoformat() if self.updatedAt else None
+            'updatedAt': self.updatedAt.isoformat() if getattr(self, 'updatedAt', None) else None
         }
 
 class Appointment(db.Model):
@@ -55,6 +56,8 @@ class Appointment(db.Model):
     patient = db.relationship('User', foreign_keys=[patient_id], back_populates='appointments_as_patient')
     therapist = db.relationship('User', foreign_keys=[therapist_id])
 
+    duration = db.Column(db.Integer, nullable=False)
+
     createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -63,16 +66,18 @@ class Appointment(db.Model):
             'id': self.id,
             'patientId': self.patient_id,
             'therapistId': self.therapist_id,
-            'dateTime': self.date_time.isoformat(),
+            'therapistName': f"{self.therapist.first_name} {self.therapist.last_name}" if self.therapist else "Nieznany terapeuta",
+            'patientName': f"{self.patient.first_name} {self.patient.last_name}" if self.patient else "Wolny termin",
+            'dateTime': self.date_time.isoformat() + 'Z',
             'status': self.status,
             'description': self.description,
             'cancellationReason': self.cancellation_reason,
             'outcomeNotes': self.outcome_notes,
-            'createdAt': self.createdAt.isoformat() if self.createdAt else None,
-            'updatedAt': self.updatedAt.isoformat() if self.updatedAt else None
+            'duration': self.duration,
+            'createdAt': self.createdAt.isoformat() + 'Z' if self.createdAt else None,
+            'updatedAt': self.updatedAt.isoformat() + 'Z' if self.updatedAt else None
         }
     
-
 class Diary(db.Model):
     __tablename__ = 'diaries'
 

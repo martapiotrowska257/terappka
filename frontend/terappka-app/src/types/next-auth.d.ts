@@ -7,7 +7,7 @@ declare module "next-auth" {
     error?: string;
     user: {
       id: string;
-      roles?: string[]; // <--- Dodajemy role do sesji
+      roles?: string[];
     } & DefaultSession["user"];
   }
 
@@ -15,7 +15,7 @@ declare module "next-auth" {
     accessToken?: string;
     refreshToken?: string;
     expiresIn?: number;
-    roles?: string[]; // <--- Dodajemy role do użytkownika
+    roles?: string[];
   }
 }
 
@@ -25,6 +25,6 @@ declare module "next-auth/jwt" {
     refreshToken?: string;
     expiresAt?: number;
     error?: string;
-    roles?: string[]; // <--- Dodajemy role do tokena
+    roles?: string[];
   }
 }

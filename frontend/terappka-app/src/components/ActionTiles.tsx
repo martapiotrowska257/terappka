@@ -55,7 +55,6 @@ export default function ActionTiles() {
           <button
             key={tile.id}
             type="button"
-            // onClick={tile.onClick}
             className={tileStyles}
           >
             {content}

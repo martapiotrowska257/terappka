@@ -2,6 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import api from "@/src/lib/api";
+import {
+  getLocalISODate,
+  getPrevDay,
+  getNextDay,
+  isToday,
+  formatDate,
+} from "@/src/lib/time";
 
 export default function PamietnikPage() {
   const { data: session } = useSession();
@@ -9,42 +17,10 @@ export default function PamietnikPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [question, setQuestion] = useState("Ładowanie pytania...");
   const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">(
-    "idle",
-  );
-
-  const getPrevDay = (date: Date) => {
-    const d = new Date(date);
-    d.setDate(d.getDate() - 1);
-    return d;
-  };
-
-  const getNextDay = (date: Date) => {
-    const d = new Date(date);
-    d.setDate(d.getDate() + 1);
-    return d;
-  };
-
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
-
-  // Zwraca datę YYYY-MM-DD zgodnie z lokalną strefą czasową pacjenta
-  const getLocalISODate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("pl-PL", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  };
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "success" | "error" | "empty"
+  >("idle");
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,57 +30,29 @@ export default function PamietnikPage() {
       setEntry("");
       setSaveStatus("idle");
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
       const formattedDate = getLocalISODate(selectedDate);
 
       try {
-        const resQuestion = await fetch(
-          `${apiUrl}/api/diary/question?date=${formattedDate}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.accessToken}`,
-            },
-          },
+        const resQuestion = await api.get(
+          `/api/diary/question?date=${formattedDate}`,
         );
 
-        if (resQuestion.ok) {
-          const data = await resQuestion.json();
-          setQuestion(data.question || "Brak pytania na ten dzień.");
-        } else {
-          setQuestion("Nie udało się pobrać pytania na ten dzień.");
-        }
+        setQuestion(resQuestion.data.question || "Brak pytania na ten dzień.");
       } catch (error) {
         console.error("Błąd pobierania pytania:", error);
         setQuestion("Błąd połączenia z serwerem.");
       }
 
       try {
-        const resEntry = await fetch(
-          `${apiUrl}/api/diary?date=${formattedDate}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.accessToken}`,
-            },
-          },
-        );
+        const resEntry = await api.get(`/api/diary?date=${formattedDate}`);
 
-        if (resEntry.ok) {
-          const data = await resEntry.json();
-          setEntry(data.content || "");
-        } else if (resEntry.status === 404) {
+        setEntry(resEntry.data.content || "");
+      } catch (error: any) {
+        if (error.response && error.response.status === 404) {
           setEntry("");
         } else {
-          console.error(
-            "Błąd pobierania wpisu pamiętnika, status:",
-            resEntry.status,
-          );
+          console.error("Błąd połączenia z API (Pobieranie wpisu):", error);
         }
-      } catch (error) {
-        console.error("Błąd połączenia z API (Pobieranie wpisu):", error);
       }
     };
 
@@ -113,12 +61,13 @@ export default function PamietnikPage() {
 
   const handleSaveEntry = async () => {
     if (!session?.accessToken) {
-      alert("Musisz być zalogowany, aby zapisać wpis.");
+      setShowAuthModal(true);
       return;
     }
 
     if (!entry.trim()) {
-      alert("Nie możesz zapisać pustego wpisu.");
+      setSaveStatus("empty");
+      setTimeout(() => setSaveStatus("idle"), 3000);
       return;
     }
 
@@ -126,27 +75,15 @@ export default function PamietnikPage() {
     setSaveStatus("idle");
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
-
-      const res = await fetch(`${apiUrl}/api/diary`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.accessToken}`,
-        },
-        body: JSON.stringify({
-          question: question,
-          content: entry,
-          date: getLocalISODate(selectedDate),
-        }),
+      const res = await api.post("/api/diary", {
+        question: question,
+        content: entry,
+        date: getLocalISODate(selectedDate),
       });
 
-      if (res.ok) {
+      if (res.status === 200 || res.status === 201) {
         setSaveStatus("success");
         setTimeout(() => setSaveStatus("idle"), 3000);
-      } else {
-        console.error("Błąd zapisu pamiętnika:", res.status);
-        setSaveStatus("error");
       }
     } catch (error) {
       console.error("Błąd połączenia z API (Zapis):", error);
@@ -162,7 +99,6 @@ export default function PamietnikPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 flex flex-col justify-center items-center">
-      {/* Pasek nawigacyjny pamiętnika */}
       <div className="w-full max-w-3xl flex justify-center items-center gap-4 md:gap-12 mb-8 font-serif text-gray-500">
         <button
           onClick={() => setSelectedDate(prevDate)}
@@ -205,7 +141,6 @@ export default function PamietnikPage() {
         )}
       </div>
 
-      {/* Główny kontener książki */}
       <div className="w-full max-w-3xl bg-[#fdfbf7] shadow-2xl rounded-r-3xl rounded-l-sm border-l-[16px] border-emerald-100 min-h-[700px] flex flex-col relative transition-all duration-300">
         <div className="p-8 md:p-12 flex-1 flex flex-col">
           <div className="flex justify-between items-end border-b-2 border-gray-200 pb-2 mb-10">
@@ -236,13 +171,18 @@ export default function PamietnikPage() {
           <div className="mt-8 flex items-center justify-between">
             <div className="font-serif text-sm">
               {saveStatus === "success" && (
-                <span className="text-emerald-600 font-medium animate-pulse">
+                <span className="text-emerald-600 font-medium">
                   ✓ Pomyślnie zapisano wpis!
                 </span>
               )}
               {saveStatus === "error" && (
                 <span className="text-red-500 font-medium">
                   ✕ Wystąpił błąd podczas zapisu.
+                </span>
+              )}
+              {saveStatus === "empty" && (
+                <span className="text-amber-500 font-medium">
+                  ✎ Nie możesz zapisać pustego wpisu.
                 </span>
               )}
             </div>
@@ -261,6 +201,48 @@ export default function PamietnikPage() {
           </div>
         </div>
       </div>
+      {showAuthModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div
+            className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 transform transition-all"
+            style={{ animation: "popUp 0.3s ease-out forwards" }}
+          >
+            <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
+              🔒
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                Brak autoryzacji
+              </h2>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Musisz być zalogowany, aby móc zapisać swój wpis w pamiętniku.
+                Twoje myśli są prywatne i wymagają bezpiecznego połączenia.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowAuthModal(false)}
+              className="w-full py-3 px-4 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 transition-colors shadow-md hover:shadow-lg"
+            >
+              Rozumiem
+            </button>
+          </div>
+
+          <style jsx>{`
+            @keyframes popUp {
+              from {
+                opacity: 0;
+                transform: scale(0.95);
+              }
+              to {
+                opacity: 1;
+                transform: scale(1);
+              }
+            }
+          `}</style>
+        </div>
+      )}
     </div>
   );
 }

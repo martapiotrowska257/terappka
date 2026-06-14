@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Calendar, dateFnsLocalizer, Event } from "react-big-calendar";
+import { useState, useCallback } from "react";
+import { Calendar, dateFnsLocalizer, Event, View } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
-import { pl } from "date-fns/locale"; // Polski język!
-import type { View } from "react-big-calendar";
+import { pl } from "date-fns/locale";
 // @ts-expect-error: side-effect import of CSS file without type declarations
-import "react-big-calendar/lib/css/react-big-calendar.css"; // Domyślne style
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import type { AppointmentStatus } from "@/src/types/appointment";
 
-// Konfiguracja polskiego kalendarza (tydzień zaczyna się w poniedziałek)
 const locales = {
   pl: pl,
 };
@@ -21,72 +20,95 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-// Rozszerzamy domyślny typ Event, aby trzymać dodatkowe dane o wizycie
 export interface AppointmentEvent extends Event {
   id: string;
+  title: string;
+  start: Date;
+  end: Date;
   patientName?: string;
   therapistName?: string;
-  status: "AVAILABLE" | "BOOKED" | "COMPLETED" | "CANCELLED";
+  status: AppointmentStatus;
+  description?: string;
 }
 
 interface ScheduleCalendarProps {
   events: AppointmentEvent[];
   isTherapist: boolean;
-  onBookSlot?: (start: Date, end: Date) => void;
-  onCancelEvent?: (eventId: string) => void;
+  onSlotSelect?: (start: Date) => void;
+  onEventClick?: (event: AppointmentEvent) => void;
 }
 
 export default function ScheduleCalendar({
   events,
   isTherapist,
-  onBookSlot,
-  onCancelEvent,
+  onSlotSelect,
+  onEventClick,
 }: ScheduleCalendarProps) {
   const [view, setView] = useState<View>("week");
+  const [date, setDate] = useState<Date>(new Date());
 
-  // Stylowanie poszczególnych "klocków" w kalendarzu na podstawie statusu
-  const eventStyleGetter = (event: AppointmentEvent) => {
-    let backgroundColor = "#3b82f6"; // domyślny niebieski
-    if (event.status === "AVAILABLE") backgroundColor = "#10b981"; // szmaragdowy
-    if (event.status === "CANCELLED") backgroundColor = "#ef4444"; // czerwony
+  const handleSelectSlot = useCallback(
+    (slotInfo: { start: Date; action: "select" | "click" | "doubleClick" }) => {
+      if (onSlotSelect && isTherapist) {
+        onSlotSelect(slotInfo.start);
+      }
+    },
+    [onSlotSelect, isTherapist],
+  );
+
+  const handleSelectEvent = useCallback(
+    (event: AppointmentEvent) => {
+      if (onEventClick) {
+        onEventClick(event);
+      }
+    },
+    [onEventClick],
+  );
+
+  const eventStyleGetter = useCallback((event: AppointmentEvent) => {
+    let backgroundColor = "#10b981";
+    let color = "white";
+    let border = "none";
+
+    switch (event.status) {
+      case "AVAILABLE":
+        backgroundColor = "#ffffff";
+        color = "#10b981";
+        border = "2px dashed #10b981";
+        break;
+      case "SCHEDULED":
+      case "CONFIRMED":
+        backgroundColor = "#3b82f6";
+        break;
+      case "COMPLETED":
+        backgroundColor = "#6b7280";
+        break;
+      case "CANCELLED":
+      case "NO_SHOW":
+        backgroundColor = "#ef4444";
+        break;
+    }
 
     return {
       style: {
         backgroundColor,
+        color,
+        border,
         borderRadius: "6px",
-        color: "white",
-        border: "none",
+        opacity: 0.9,
         display: "block",
+        fontWeight: 500,
+        fontSize: "0.875rem",
+        padding: "2px 4px",
       },
     };
-  };
+  }, []);
 
   return (
-    <div className="bg-white p-4 rounded-xl w-full">
-      <style>{`
-        .rbc-calendar {
-          font-family: inherit;
-        }
-        .rbc-event {
-          font-size: 0.85rem;
-          padding: 2px 5px;
-        }
-        .rbc-toolbar button.rbc-active {
-          background-color: #10b981;
-          color: white;
-          border-color: #10b981;
-        }
-        .rbc-today {
-          background-color: #f9fafb;
-        }
-      `}</style>
-
+    <div className="h-[600px] md:h-[700px] bg-white p-4 rounded-xl shadow-sm border border-gray-100">
       <Calendar
         localizer={localizer}
         events={events}
-        startAccessor="start"
-        endAccessor="end"
-        style={{ height: 600 }}
         culture="pl"
         messages={{
           next: "Następny",
@@ -100,36 +122,15 @@ export default function ScheduleCalendar({
         }}
         view={view}
         onView={(newView: View) => setView(newView)}
-        // Zaznaczanie pustych slotów działa tu tylko dla terapeuty (tworzenie dostępności)
+        date={date}
+        onNavigate={(newDate: Date) => setDate(newDate)}
         selectable={isTherapist}
-        onSelectSlot={(slotInfo) => {
-          if (onBookSlot && slotInfo.action === "select") {
-            onBookSlot(slotInfo.start, slotInfo.end);
-          }
-        }}
-        onSelectEvent={(event: AppointmentEvent) => {
-          // ZMIANA: Sprawdzamy czy użytkownik to terapeuta, czy pacjent
-          if (isTherapist) {
-            // TERAPEUTA: Może anulować wizytę (wyświetla się prompt)
-            const confirmCancel = window.confirm(
-              `Czy chcesz odwołać wizytę: ${event.title}?`,
-            );
-            if (confirmCancel && onCancelEvent) {
-              onCancelEvent(event.id);
-            }
-          } else {
-            // PACJENT: Wyświetlamy tylko podgląd informacji o wizycie (bez pytania o anulowanie)
-            alert(
-              `Informacje o wizycie:\n\n${event.title}\nStatus: ${
-                event.status === "BOOKED" ? "Zarezerwowana" : event.status
-              }`,
-            );
-          }
-        }}
+        onSelectSlot={handleSelectSlot}
+        onSelectEvent={handleSelectEvent}
         eventPropGetter={eventStyleGetter}
         defaultView="week"
-        min={new Date(0, 0, 0, 8, 0, 0)} // Kalendarz zaczyna się od 8:00
-        max={new Date(0, 0, 0, 20, 0, 0)} // Kalendarz kończy się o 20:00
+        min={new Date(0, 0, 0, 8, 0, 0)}
+        max={new Date(0, 0, 0, 20, 0, 0)}
       />
     </div>
   );

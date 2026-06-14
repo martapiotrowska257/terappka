@@ -10,7 +10,6 @@ export default function RelaksPage() {
           Usiądź wygodnie. Wykorzystaj to ćwiczenie, aby uspokoić myśli i obniżyć poziom stresu.
         </p>
         
-        {/* Wywołanie naszego nowego komponentu */}
         <BreathingExercise />
         
       </div>

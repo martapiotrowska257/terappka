@@ -1,4 +1,3 @@
-// src/components/LoginForm.tsx
 "use client";
 
 import { signIn } from "next-auth/react";
@@ -118,7 +117,6 @@ export default function LoginForm() {
       >
         {({ isSubmitting, values, setFieldValue }) => (
           <Form className="flex flex-col gap-4">
-            {/* WYBÓR ROLI (Tylko rejestracja) */}
             {isRegister && (
               <div className="mb-2">
                 <label className="text-sm font-medium text-gray-700 block mb-2">
