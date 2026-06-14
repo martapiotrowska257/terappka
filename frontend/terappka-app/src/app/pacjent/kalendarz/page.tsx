@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import ScheduleCalendar, {
   AppointmentEvent,
-} from "@/src/components/ScheduleCalendar";
+} from "@/src/components/calendar/ScheduleCalendar";
 import api from "@/src/lib/api";
-import Toast from "@/src/components/Toast"; // <-- Importujemy Twój komponent Toast
+import Toast from "@/src/components/utils/Toast"; // <-- Importujemy Twój komponent Toast
 import type { Appointment, AppointmentStatus } from "@/src/types/appointment";
 import { formatDate } from "@/src/lib/time";
 import io from "socket.io-client";

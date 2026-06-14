@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import api from "@/src/lib/api";
-import Toast from "@/src/components/Toast";
+import Toast from "@/src/components/utils/Toast";
 import { ToastType } from "@/src/types/toast";
 
 interface Patient {

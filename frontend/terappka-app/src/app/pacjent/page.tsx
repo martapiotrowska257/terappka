@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import ActionTiles from "@/src/components/ActionTiles";
+import ActionTiles from "@/src/components/utils/ActionTiles";
 import type { Appointment } from "@/src/types/appointment";
 
 async function getAppointments(token: string): Promise<Appointment[]> {

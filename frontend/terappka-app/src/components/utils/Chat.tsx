@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import io, { Socket } from "socket.io-client";
 import api from "@/src/lib/api";
-import { Message } from "../types/messages";
+import { Message } from "../../types/messages";
 
 interface ChatProps {
   otherUserId: string;

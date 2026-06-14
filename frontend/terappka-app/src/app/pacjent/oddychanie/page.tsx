@@ -1,5 +1,5 @@
 import React from "react";
-import BreathingExercise from "@/src/components/BreathingExercise";
+import BreathingExercise from "@/src/components/utils/BreathingExercise";
 
 export default function RelaksPage() {
   return (

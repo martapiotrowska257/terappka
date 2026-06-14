@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import ScheduleCalendar, {
   AppointmentEvent,
-} from "@/src/components/ScheduleCalendar";
-import AppointmentControlPanel from "@/src/components/AppointmentControlPanel";
+} from "@/src/components/calendar/ScheduleCalendar";
+import AppointmentControlPanel from "@/src/components/calendar/AppointmentControlPanel";
 import api from "@/src/lib/api";
 import type { Appointment, AppointmentStatus } from "@/src/types/appointment";
 import type { User } from "@/src/types/user";

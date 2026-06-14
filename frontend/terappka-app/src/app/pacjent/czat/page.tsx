@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import api from "@/src/lib/api";
-import Chat from "@/src/components/Chat"; // Importujemy Twój nowy uniwersalny czat
+import Chat from "@/src/components/utils/Chat"; // Importujemy Twój nowy uniwersalny czat
 
 // Definiujemy interfejs na podstawie tego, co zwraca endpoint /api/users/therapist
 interface Therapist {

@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import api from "@/src/lib/api";
-import type { AppointmentEvent } from "@/src/components/ScheduleCalendar";
+import type { AppointmentEvent } from "@/src/components/calendar/ScheduleCalendar";
 import type { User } from "@/src/types/user";
-import Toast from "@/src/components/Toast";
-import { formatDateToISO, formatTimeToHHMM } from "../lib/time";
-import { ToastType } from "../types/toast";
+import Toast from "@/src/components/utils/Toast";
+import { formatDateToISO, formatTimeToHHMM } from "../../lib/time";
+import { ToastType } from "../../types/toast";
 
 interface AppointmentControlPanelProps {
   selectedEvent: AppointmentEvent | null;

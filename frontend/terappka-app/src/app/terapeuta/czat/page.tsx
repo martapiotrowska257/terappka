@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import api from "@/src/lib/api";
-import Chat from "@/src/components/Chat"; // Nasz uniwersalny komponent!
+import Chat from "@/src/components/utils/Chat"; // Nasz uniwersalny komponent!
 
 interface Patient {
   id: string;

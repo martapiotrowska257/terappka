@@ -1,5 +1,5 @@
-import LoginForm from "../components/LoginForm";
-import RandomQuote from "../components/RandomQuote";
+import LoginForm from "../components/utils/LoginForm";
+import RandomQuote from "../components/utils/RandomQuote";
 
 export default function Home() {
   return (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { ToastMessageType } from "../types/toast";
+import { ToastMessageType } from "../../types/toast";
 
 interface ToastProps {
   message: string;

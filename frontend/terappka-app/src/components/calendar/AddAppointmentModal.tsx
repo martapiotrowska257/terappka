@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import api from "@/src/lib/api";
-import { User } from "../types/user";
+import { User } from "../../types/user";
 
 export default function AddAppointmentModal({
   onClose,
