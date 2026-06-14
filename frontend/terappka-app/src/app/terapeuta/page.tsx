@@ -4,10 +4,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { User } from "@/src/types/user";
 import { Appointment } from "@/src/types/appointment";
+import { apiUrl, getAppointmentsLabel } from "@/src/lib/utils";
+import { isToday } from "@/src/lib/time";
 
 async function getTherapistDashboardData(token: string) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
-
   try {
     const [resAppts, resPatients] = await Promise.all([
       fetch(`${apiUrl}/api/appointments`, {
@@ -33,36 +33,8 @@ async function getTherapistDashboardData(token: string) {
   }
 }
 
-const isToday = (date: Date) => {
-  const today = new Date();
-  return (
-    date.getDate() === today.getDate() &&
-    date.getMonth() === today.getMonth() &&
-    date.getFullYear() === today.getFullYear()
-  );
-};
-
 export default async function TherapistDashboard() {
   const session = await getServerSession(authOptions);
-  const getAppointmentsLabel = (count: number) => {
-    if (count === 1) return "wizytę";
-
-    const lastDigit = count % 10;
-    const lastTwoDigits = count % 100;
-
-    // Łapie liczby kończące się na 2, 3, 4 (np. 2, 3, 4, 22, 23, 24, 32...)
-    // Oprócz tych kończących się na 12, 13, 14 (np. 12 wizyt, 113 wizyt)
-    if (
-      lastDigit >= 2 &&
-      lastDigit <= 4 &&
-      (lastTwoDigits < 12 || lastTwoDigits > 14)
-    ) {
-      return "wizyty";
-    }
-
-    // W każdym innym przypadku (0, 5-21, 25-31 itd.)
-    return "wizyt";
-  };
 
   if (!session || !session.user?.roles?.includes("therapist")) {
     redirect("/login");

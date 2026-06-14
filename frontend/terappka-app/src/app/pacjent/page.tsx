@@ -4,12 +4,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import ActionTiles from "@/src/components/utils/ActionTiles";
 import type { Appointment } from "@/src/types/appointment";
+import { apiUrl } from "@/src/lib/utils";
 
 async function getAppointments(token: string): Promise<Appointment[]> {
-  const apiUrl =
-    process.env.NEXT_PUBLIC_API_URL ||
-    process.env.API_URL ||
-    "http://127.0.0.1:5000";
   try {
     const res = await fetch(`${apiUrl}/api/appointments`, {
       method: "GET",
@@ -28,10 +25,6 @@ async function getAppointments(token: string): Promise<Appointment[]> {
 }
 
 async function getMyTherapist(token: string) {
-  const apiUrl =
-    process.env.NEXT_PUBLIC_API_URL ||
-    process.env.API_URL ||
-    "http://127.0.0.1:5000";
   try {
     const res = await fetch(`${apiUrl}/api/users/therapist`, {
       method: "GET",

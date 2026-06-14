@@ -5,20 +5,12 @@ import { useSession } from "next-auth/react";
 import api from "@/src/lib/api";
 import Toast from "@/src/components/utils/Toast";
 import { ToastType } from "@/src/types/toast";
-
-interface Patient {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  therapistId: string | null;
-}
+import { User } from "@/src/types/user";
 
 export default function TerapeutaPacjenciPage() {
   const { data: session } = useSession();
-  const [myPatients, setMyPatients] = useState<Patient[]>([]);
-  const [allPatients, setAllPatients] = useState<Patient[]>([]);
+  const [myPatients, setMyPatients] = useState<User[]>([]);
+  const [allPatients, setAllPatients] = useState<User[]>([]);
   const [activeTab, setActiveTab] = useState<"my" | "all">("my");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);

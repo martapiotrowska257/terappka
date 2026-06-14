@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import io, { Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
 import api from "@/src/lib/api";
 import { Message } from "../../types/messages";
+import { socket } from "@/src/lib/utils";
 
 interface ChatProps {
   otherUserId: string;
@@ -49,12 +50,6 @@ export default function Chat({ otherUserId, otherUserName }: ChatProps) {
   // 2. Obsługa WebSocketów
   useEffect(() => {
     if (!session?.accessToken) return;
-
-    // Połączenie z serwerem Flaska (dostosuj port jeśli jest inny)
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
-    const socket = io(apiUrl, {
-      transports: ["websocket"], // Wymuszenie czystych WebSocketów
-    });
 
     socketRef.current = socket;
 

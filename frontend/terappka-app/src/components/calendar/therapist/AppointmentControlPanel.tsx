@@ -5,8 +5,8 @@ import api from "@/src/lib/api";
 import type { AppointmentEvent } from "@/src/components/calendar/ScheduleCalendar";
 import type { User } from "@/src/types/user";
 import Toast from "@/src/components/utils/Toast";
-import { formatDateToISO, formatTimeToHHMM } from "../../lib/time";
-import { ToastType } from "../../types/toast";
+import { formatDateToISO, formatTimeToHHMM } from "../../../lib/time";
+import { ToastType } from "../../../types/toast";
 
 interface AppointmentControlPanelProps {
   selectedEvent: AppointmentEvent | null;

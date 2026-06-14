@@ -18,9 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pl">
-      <body
-        className={`${inter.className} flex flex-col min-h-screen bg-gray-50`}
-      >
+      <body className={`${inter.className} flex flex-col min-h-screen`}>
         <SessionProviderWrapper>
           <Header />
           <main className="flex flex-1 flex-col">{children}</main>

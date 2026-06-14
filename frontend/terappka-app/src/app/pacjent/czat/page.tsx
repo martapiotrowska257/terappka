@@ -3,19 +3,12 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import api from "@/src/lib/api";
-import Chat from "@/src/components/utils/Chat"; // Importujemy Twój nowy uniwersalny czat
-
-// Definiujemy interfejs na podstawie tego, co zwraca endpoint /api/users/therapist
-interface Therapist {
-  id: string | null;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-}
+import Chat from "@/src/components/utils/Chat";
+import { User } from "@/src/types/user";
 
 export default function PatientChatPage() {
   const { data: session } = useSession();
-  const [therapist, setTherapist] = useState<Therapist | null>(null);
+  const [therapist, setTherapist] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -37,7 +30,6 @@ export default function PatientChatPage() {
   return (
     <div className="  p-6 md:p-12">
       <div className="max-w-5xl mx-auto space-y-6">
-        {/* NAGŁÓWEK STRONY */}
         <header className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">
@@ -50,7 +42,6 @@ export default function PatientChatPage() {
           </div>
         </header>
 
-        {/* LOGIKA WYŚWIETLANIA CZATU */}
         {isLoading ? (
           <div className="bg-white h-[600px] rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center">
             <div className="text-emerald-600 font-medium animate-pulse">

@@ -4,12 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import ScheduleCalendar, {
   AppointmentEvent,
 } from "@/src/components/calendar/ScheduleCalendar";
-import AppointmentControlPanel from "@/src/components/calendar/AppointmentControlPanel";
+import AppointmentControlPanel from "@/src/components/calendar/therapist/AppointmentControlPanel";
 import api from "@/src/lib/api";
 import type { Appointment, AppointmentStatus } from "@/src/types/appointment";
 import type { User } from "@/src/types/user";
-import io from "socket.io-client";
 import { useSession } from "next-auth/react";
+import { socket } from "@/src/lib/utils";
 
 export default function TherapistCalendarPage() {
   const { data: session } = useSession();
@@ -24,7 +24,7 @@ export default function TherapistCalendarPage() {
 
   const fetchData = useCallback(async (isSilent = false) => {
     if (!isSilent) {
-      setIsLoading(true); // Ekran ładowania blokuje widok TYLKO przy pierwszym wejściu
+      setIsLoading(true);
     }
     try {
       const resPatients = await api.get("/api/users?assigned_only=true");
@@ -66,22 +66,17 @@ export default function TherapistCalendarPage() {
       console.error("Błąd pobierania danych:", error);
     } finally {
       if (!isSilent) {
-        setIsLoading(false); // Zdejmujemy loader TYLKO jeśli to nie było ciche odświeżanie
+        setIsLoading(false);
       }
     }
   }, []);
 
-  // --- LOGIKA WEBSOCKET: Reaktywny kalendarz ---
   useEffect(() => {
     fetchData(false);
   }, [fetchData]);
 
-  // 2. Nasłuchiwanie na WebSockety (CICHE - odświeżenie w tle)
   useEffect(() => {
     if (!session?.accessToken) return;
-
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
-    const socket = io(apiUrl, { transports: ["websocket"] });
 
     socket.on("connect", () => {
       socket.emit("authenticate", { token: session.accessToken });
@@ -91,7 +86,7 @@ export default function TherapistCalendarPage() {
       console.log(
         "🔄 Otrzymano sygnał z backendu! Odświeżam kalendarz w tle...",
       );
-      fetchData(true); // Przekazujemy TRUE, kalendarz nie zniknie z ekranu!
+      fetchData(true);
     });
 
     return () => {

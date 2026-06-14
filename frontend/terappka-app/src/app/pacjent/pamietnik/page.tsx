@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import api from "@/src/lib/api";
 import {
-  getLocalISODate,
   getPrevDay,
   getNextDay,
   isToday,
   formatDate,
+  formatDateToISO,
 } from "@/src/lib/time";
 
 export default function PamietnikPage() {
@@ -30,7 +30,7 @@ export default function PamietnikPage() {
       setEntry("");
       setSaveStatus("idle");
 
-      const formattedDate = getLocalISODate(selectedDate);
+      const formattedDate = formatDateToISO(selectedDate);
 
       try {
         const resQuestion = await api.get(
@@ -78,7 +78,7 @@ export default function PamietnikPage() {
       const res = await api.post("/api/diary", {
         question: question,
         content: entry,
-        date: getLocalISODate(selectedDate),
+        date: formatDateToISO(selectedDate),
       });
 
       if (res.status === 200 || res.status === 201) {
