@@ -109,8 +109,6 @@ export default function Chat({ otherUserId, otherUserName }: ChatProps) {
     setNewMessage("");
   };
 
-  const currentUserId = session?.user?.id;
-
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-50 h-[500px] rounded-xl border border-gray-100">
@@ -153,7 +151,7 @@ export default function Chat({ otherUserId, otherUserName }: ChatProps) {
           </div>
         ) : (
           messages.map((msg) => {
-            const isMe = msg.senderId === currentUserId;
+            const isMe = msg.senderId !== otherUserId;
             const time = new Date(msg.createdAt).toLocaleTimeString("pl-PL", {
               hour: "2-digit",
               minute: "2-digit",
