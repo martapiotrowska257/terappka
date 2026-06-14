@@ -6,7 +6,7 @@ from .config import Config
 
 db = SQLAlchemy()
 
-socketio = SocketIO(cors_allowed_origins=["http://localhost:3000", "http://127.0.0.1:3000"])
+socketio = SocketIO(cors_allowed_origins=["http://localhost:3000", "http://127.0.0.1:3000"], manage_session=False)
 
 def create_app():
     app = Flask(__name__)
