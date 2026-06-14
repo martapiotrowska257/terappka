@@ -57,6 +57,7 @@ export default function TherapistCalendarPage() {
             status: app.status as AppointmentStatus,
             patientName: pName,
             description: app.description,
+            cancellationReason: app.cancellationReason,
           };
         },
       );

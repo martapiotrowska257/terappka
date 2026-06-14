@@ -67,6 +67,7 @@ export default function PatientCalendarPage() {
             therapistId: app.therapistId,
             therapistName: app.therapistName,
             description: app.description,
+            cancellationReason: app.cancellationReason,
           };
         },
       );
@@ -325,6 +326,18 @@ export default function PatientCalendarPage() {
                     </div>
                   )}
                 </div>
+                {(selectedEvent.status === "CANCELLED" ||
+                  selectedEvent.status === "NO_SHOW") && (
+                  <div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">
+                      Powód odwołania wizyty
+                    </div>
+                    <div className="font-medium text-gray-800 mt-1">
+                      {selectedEvent.cancellationReason ||
+                        "Brak podanego powodu"}
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-6 flex justify-end gap-3 border-t pt-4">
                   {(selectedEvent.status === "SCHEDULED" ||

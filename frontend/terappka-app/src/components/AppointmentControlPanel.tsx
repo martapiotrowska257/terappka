@@ -285,6 +285,18 @@ export default function AppointmentControlPanel({
                     {selectedEvent.description || "Brak notatek"}
                   </div>
                 </div>
+                {(selectedEvent.status === "CANCELLED" ||
+                  selectedEvent.status === "NO_SHOW") && (
+                  <div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wide mt-2">
+                      Powód odwołania wizyty
+                    </div>
+                    <div className="font-medium text-gray-800 mt-1">
+                      {selectedEvent.cancellationReason ||
+                        "Brak podanego powodu"}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {selectedEvent.status === "AVAILABLE" && (

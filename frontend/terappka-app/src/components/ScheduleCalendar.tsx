@@ -28,6 +28,7 @@ export interface AppointmentEvent extends Event {
   therapistName?: string;
   status: AppointmentStatus;
   description?: string;
+  cancellationReason?: string;
 }
 
 interface ScheduleCalendarProps {
