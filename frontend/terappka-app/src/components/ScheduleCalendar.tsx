@@ -4,7 +4,6 @@ import { useState, useCallback } from "react";
 import { Calendar, dateFnsLocalizer, Event, View } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { pl } from "date-fns/locale";
-// @ts-expect-error: side-effect import of CSS file without type declarations
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import type { AppointmentStatus } from "@/src/types/appointment";
 
