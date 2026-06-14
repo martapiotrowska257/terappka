@@ -69,7 +69,7 @@ export default function TerapeutaPacjenciPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className=" flex items-center justify-center bg-gray-50">
         <div className="text-emerald-600 font-medium text-lg">
           Ładowanie listy pacjentów...
         </div>
@@ -80,7 +80,7 @@ export default function TerapeutaPacjenciPage() {
   const displayedPatients = activeTab === "my" ? myPatients : allPatients;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-12">
+    <div className=" bg-gray-50 p-6 md:p-12">
       <div className="max-w-5xl mx-auto space-y-8">
         <header className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>

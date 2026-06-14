@@ -35,7 +35,7 @@ export default function PatientChatPage() {
   }, [session]);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-12">
+    <div className=" bg-gray-50 p-6 md:p-12">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* NAGŁÓWEK STRONY */}
         <header className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">

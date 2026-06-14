@@ -77,7 +77,7 @@ export default async function TherapistDashboard() {
     session.user.name || session.user.email?.split("@")[0] || "Terapeuto";
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-12">
+    <div className=" bg-gray-50 p-6 md:p-12">
       <div className="max-w-6xl mx-auto space-y-8">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <div>

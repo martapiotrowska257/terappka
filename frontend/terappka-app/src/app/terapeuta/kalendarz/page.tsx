@@ -109,7 +109,7 @@ export default function TherapistCalendarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div className=" bg-gray-50 p-4 md:p-8">
       <header className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">
           Zarządzanie Grafikiem
