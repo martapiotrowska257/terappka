@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import api from "@/src/lib/api";
 import Toast from "@/src/components/utils/Toast";
@@ -16,7 +16,7 @@ export default function TerapeutaPacjenciPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastType | null>(null);
 
-  const fetchPatientsData = async () => {
+  const fetchPatientsData = useCallback(async () => {
     if (!session?.accessToken) return;
     setLoading(true);
     try {
@@ -30,11 +30,11 @@ export default function TerapeutaPacjenciPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session]);
 
   useEffect(() => {
     fetchPatientsData();
-  }, [session]);
+  }, [fetchPatientsData]);
 
   const handleAssignPatient = async (patientId: string) => {
     setActionLoading(patientId);
