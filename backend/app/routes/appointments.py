@@ -1,10 +1,16 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
-from .. import db
+from .. import db, socketio
 from ..models import User, Appointment
 from ..auth import jwt_required, get_current_user_from_token
 
 appointments_bp = Blueprint('appointments', __name__)
+
+def notify_calendar_update(therapist_id, patient_id=None):
+    if therapist_id:
+        socketio.emit('calendar_updated', room=therapist_id)
+    if patient_id:
+        socketio.emit('calendar_updated', room=patient_id)
 
 @appointments_bp.route('/api/appointments', methods=['POST'])
 @jwt_required()
@@ -57,8 +63,10 @@ def create_appointment():
 
     db.session.add(new_appointment)
     db.session.commit()
-    return jsonify(new_appointment.to_dict()), 201
 
+    notify_calendar_update(new_appointment.therapist_id, new_appointment.patient_id)
+
+    return jsonify(new_appointment.to_dict()), 201
 
 @appointments_bp.route('/api/appointments', methods=['GET'])
 @jwt_required()
@@ -77,7 +85,6 @@ def get_appointments():
         ).all()
 
     return jsonify([appt.to_dict() for appt in appointments])
-
 
 @appointments_bp.route('/api/appointments/<int:id>/status', methods=['PATCH'])
 @jwt_required()
@@ -121,8 +128,10 @@ def update_appointment_status(id):
 
     appointment.status = new_status
     db.session.commit()
-    return jsonify(appointment.to_dict())
 
+    notify_calendar_update(appointment.therapist_id, appointment.patient_id)
+
+    return jsonify(appointment.to_dict())
 
 @appointments_bp.route('/api/appointments/<int:id>', methods=['PUT'])
 @jwt_required()
@@ -144,6 +153,9 @@ def reschedule_appointment(id):
             appointment.status = Appointment.STATUS_SCHEDULED if appointment.patient_id else Appointment.STATUS_AVAILABLE
             appointment.cancellation_reason = None 
             db.session.commit()
+
+            notify_calendar_update(appointment.therapist_id, appointment.patient_id)
+
             return jsonify(appointment.to_dict())
         except ValueError:
             return jsonify({'error': 'Błędny format daty'}), 400
@@ -162,4 +174,7 @@ def delete_appointment(id):
 
     db.session.delete(appointment)
     db.session.commit()
+
+    notify_calendar_update(appointment.therapist_id, appointment.patient_id)
+
     return '', 204

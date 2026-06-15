@@ -125,3 +125,25 @@ class Message(db.Model):
             'isRead': self.is_read,
             'createdAt': self.createdAt.isoformat() if self.createdAt else None
         }
+    
+class EmotionEntry(db.Model):
+    __tablename__ = 'emotion_entries'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    patient_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    
+    primary_emotion = db.Column(db.String(50), nullable=False)
+    secondary_emotion = db.Column(db.String(50), nullable=False)
+
+    createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    patient = db.relationship('User', foreign_keys=[patient_id])
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'patientId': self.patient_id,
+            'primaryEmotion': self.primary_emotion,
+            'secondaryEmotion': self.secondary_emotion,
+            'createdAt': self.createdAt.isoformat() + 'Z' if self.createdAt else None
+        }
