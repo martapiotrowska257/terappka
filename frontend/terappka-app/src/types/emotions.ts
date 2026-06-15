@@ -1,3 +1,5 @@
+import { EMOTION_TREE } from "../lib/utils";
+
 export type EmotionEntry = {
   id: string;
   patientId: string;
@@ -5,3 +7,5 @@ export type EmotionEntry = {
   secondaryEmotion: string;
   createdAt: string;
 };
+
+export type PrimaryEmotion = keyof typeof EMOTION_TREE;

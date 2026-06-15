@@ -14,46 +14,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { EmotionEntry } from "@/src/types/emotions";
-
-// Definicja naszego "Koła Emocji"
-const EMOTION_TREE = {
-  Pozytywnie: [
-    "Radość",
-    "Spokój",
-    "Wdzięczność",
-    "Duma",
-    "Ekscytacja",
-    "Nadzieja",
-    "Miłość / Bliskość",
-    "Ulga",
-  ],
-  Neutralnie: [
-    "Akceptacja",
-    "Obojętność",
-    "Zaskoczenie",
-    "Skupienie",
-    "Zamyślenie",
-    "Znużenie",
-  ],
-  Negatywnie: [
-    "Smutek",
-    "Lęk / Niepokój",
-    "Złość / Gniew",
-    "Frustracja",
-    "Poczucie winy",
-    "Wstyd",
-    "Bezradność",
-    "Samotność",
-  ],
-};
-
-type PrimaryEmotion = keyof typeof EMOTION_TREE;
+import { EmotionEntry, PrimaryEmotion } from "@/src/types/emotions";
+import { EMOTION_TREE } from "@/src/lib/utils";
 
 export default function EmotionsPage() {
   const { data: session } = useSession();
 
-  // Stany formularza
   const [selectedPrimary, setSelectedPrimary] = useState<PrimaryEmotion | null>(
     null,
   );
@@ -61,7 +27,6 @@ export default function EmotionsPage() {
     null,
   );
 
-  // Stany danych
   const [history, setHistory] = useState<EmotionEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -96,7 +61,7 @@ export default function EmotionsPage() {
       setToast({ message: "Twój nastrój został zapisany!", type: "success" });
       setSelectedPrimary(null);
       setSelectedSecondary(null);
-      fetchHistory(); // Odświeżamy wykres po dodaniu wpisu
+      fetchHistory();
     } catch (error) {
       console.error(error);
       setToast({ message: "Nie udało się zapisać nastroju.", type: "error" });
@@ -105,9 +70,8 @@ export default function EmotionsPage() {
     }
   };
 
-  // Przygotowanie danych dla wykresu (Mapowanie słów na wartości liczbowe dla osi Y)
   const chartData = history.map((entry) => {
-    let score = 2; // Neutralnie domyślnie
+    let score = 2;
     if (entry.primaryEmotion === "Pozytywnie") score = 3;
     if (entry.primaryEmotion === "Negatywnie") score = 1;
 
@@ -136,7 +100,6 @@ export default function EmotionsPage() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* LEWA STRONA - PANEL LOGOWANIA EMOCJI */}
           <section className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold text-gray-800 mb-6">
               Krok 1: Ogólny stan
@@ -150,7 +113,7 @@ export default function EmotionsPage() {
                   key={emotion}
                   onClick={() => {
                     setSelectedPrimary(emotion);
-                    setSelectedSecondary(null); // Reset drugiego kroku przy zmianie
+                    setSelectedSecondary(null);
                   }}
                   className={`p-4 rounded-2xl border-2 font-medium flex flex-col items-center gap-2 transition-all ${
                     selectedPrimary === emotion
@@ -202,7 +165,6 @@ export default function EmotionsPage() {
             )}
           </section>
 
-          {/* PRAWA STRONA - WYKRES */}
           <section className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col">
             <h2 className="text-xl font-bold text-gray-800 mb-6">Twój trend</h2>
 
