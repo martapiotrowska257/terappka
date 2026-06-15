@@ -42,7 +42,7 @@ async function refreshAccessToken(token: any) {
 const decodeJwt = (token: string) => {
   try {
     return JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
-  } catch (e) {
+  } catch {
     return null;
   }
 };

@@ -1,15 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-
-type Phase = "Wdech" | "Przytrzymaj" | "Wydech" | "Pauza";
-
-const PHASE_CONFIG: Record<Phase, { duration: number; next: Phase; scale: number }> = {
-  Wdech: { duration: 4, next: "Przytrzymaj", scale: 1.5 },
-  Przytrzymaj: { duration: 4, next: "Wydech", scale: 1.5 },
-  Wydech: { duration: 4, next: "Pauza", scale: 1 },
-  Pauza: { duration: 4, next: "Wdech", scale: 1 },
-};
+import { Phase, PHASE_CONFIG } from "@/src/types/utils";
+import { useState, useEffect } from "react";
 
 export default function BreathingExercise() {
   const [isActive, setIsActive] = useState(false);
@@ -23,7 +15,7 @@ export default function BreathingExercise() {
     if (isActive && totalTime > 0) {
       interval = setInterval(() => {
         setTotalTime((prevTotal) => prevTotal - 1);
-        
+
         setPhaseTime((prevPhaseTime) => {
           if (prevPhaseTime <= 1) {
             const nextPhase = PHASE_CONFIG[phase].next;
@@ -55,9 +47,13 @@ export default function BreathingExercise() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 bg-slate-50 rounded-2xl shadow-sm border border-slate-100 max-w-md mx-auto mt-10">
-
-      <h2 className="text-2xl font-bold text-slate-700 mb-2">Chwila na oddech</h2>
-      <p className="text-slate-500 mb-12">Pozostały czas: <span className="font-mono font-semibold">{formatTime(totalTime)}</span></p>
+      <h2 className="text-2xl font-bold text-slate-700 mb-2">
+        Chwila na oddech
+      </h2>
+      <p className="text-slate-500 mb-12">
+        Pozostały czas:{" "}
+        <span className="font-mono font-semibold">{formatTime(totalTime)}</span>
+      </p>
 
       <div className="relative flex items-center justify-center w-64 h-64 mb-12">
         <div
@@ -93,8 +89,8 @@ export default function BreathingExercise() {
           <button
             onClick={() => setIsActive(!isActive)}
             className={`px-6 py-3 rounded-full font-semibold transition-colors ${
-              isActive 
-                ? "bg-amber-100 text-amber-700 hover:bg-amber-200" 
+              isActive
+                ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
                 : "bg-teal-500 text-white hover:bg-teal-600"
             }`}
           >
@@ -108,7 +104,6 @@ export default function BreathingExercise() {
           Resetuj
         </button>
       </div>
-      
     </div>
   );
 }
