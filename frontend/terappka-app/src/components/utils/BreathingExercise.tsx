@@ -6,37 +6,45 @@ import { useState, useEffect } from "react";
 export default function BreathingExercise() {
   const [isActive, setIsActive] = useState(false);
   const [totalTime, setTotalTime] = useState(120);
-  const [phase, setPhase] = useState<Phase>("Wdech");
-  const [phaseTime, setPhaseTime] = useState(PHASE_CONFIG["Wdech"].duration);
+
+  const [step, setStep] = useState<{ phase: Phase; time: number }>({
+    phase: "Wdech",
+    time: PHASE_CONFIG["Wdech"].duration,
+  });
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
-    if (isActive && totalTime > 0) {
+    if (isActive) {
       interval = setInterval(() => {
-        setTotalTime((prevTotal) => prevTotal - 1);
-
-        setPhaseTime((prevPhaseTime) => {
-          if (prevPhaseTime <= 1) {
-            const nextPhase = PHASE_CONFIG[phase].next;
-            setPhase(nextPhase);
-            return PHASE_CONFIG[nextPhase].duration;
+        setTotalTime((prevTotal) => {
+          if (prevTotal <= 1) {
+            setIsActive(false);
+            return 0;
           }
-          return prevPhaseTime - 1;
+          return prevTotal - 1;
+        });
+
+        setStep((prevStep) => {
+          if (prevStep.time <= 1) {
+            const nextPhase = PHASE_CONFIG[prevStep.phase].next;
+            return {
+              phase: nextPhase,
+              time: PHASE_CONFIG[nextPhase].duration,
+            };
+          }
+          return { ...prevStep, time: prevStep.time - 1 };
         });
       }, 1000);
-    } else if (totalTime === 0) {
-      setIsActive(false);
     }
 
     return () => clearInterval(interval);
-  }, [isActive, totalTime, phase]);
+  }, [isActive]);
 
   const resetExercise = () => {
     setIsActive(false);
     setTotalTime(120);
-    setPhase("Wdech");
-    setPhaseTime(PHASE_CONFIG["Wdech"].duration);
+    setStep({ phase: "Wdech", time: PHASE_CONFIG["Wdech"].duration });
   };
 
   const formatTime = (seconds: number) => {
@@ -59,8 +67,8 @@ export default function BreathingExercise() {
         <div
           className="absolute w-32 h-32 bg-teal-200 rounded-full opacity-70"
           style={{
-            transform: `scale(${PHASE_CONFIG[phase].scale})`,
-            transition: `transform ${PHASE_CONFIG[phase].duration}s linear`,
+            transform: `scale(${PHASE_CONFIG[step.phase].scale})`,
+            transition: `transform ${PHASE_CONFIG[step.phase].duration}s linear`,
           }}
         />
 
@@ -68,11 +76,11 @@ export default function BreathingExercise() {
           {totalTime > 0 ? (
             <>
               <span className="text-3xl font-bold text-teal-800 tracking-wide">
-                {isActive ? phase : "Gotowy?"}
+                {isActive ? step.phase : "Gotowy?"}
               </span>
               {isActive && (
                 <span className="text-xl font-medium text-teal-700 mt-2">
-                  {phaseTime}
+                  {step.time}
                 </span>
               )}
             </>
