@@ -54,3 +54,17 @@ def send_message():
     db.session.commit()
 
     return jsonify(new_message.to_dict()), 201
+
+@messages_bp.route('/api/messages/unread-count', methods=['GET'])
+@jwt_required()
+def get_unread_count():
+    current_user = get_current_user_from_token()
+    if not current_user:
+        return jsonify({'error': 'User not found'}), 404
+
+    unread_count = Message.query.filter_by(
+        receiver_id=current_user.id, 
+        is_read=False
+    ).count()
+    
+    return jsonify({'unreadCount': unread_count}), 200

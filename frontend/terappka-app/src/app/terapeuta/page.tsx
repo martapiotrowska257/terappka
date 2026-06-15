@@ -9,12 +9,17 @@ import { isToday } from "@/src/lib/time";
 
 async function getTherapistDashboardData(token: string) {
   try {
-    const [resAppts, resPatients] = await Promise.all([
+    const [resAppts, resPatients, resUnread] = await Promise.all([
       fetch(`${apiUrl}/api/appointments`, {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
       }),
       fetch(`${apiUrl}/api/users?assigned_only=true`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      }),
+      // DODANE: Pobieranie liczby nieprzeczytanych wiadomości
+      fetch(`${apiUrl}/api/messages/unread-count`, {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
       }),
@@ -26,10 +31,15 @@ async function getTherapistDashboardData(token: string) {
 
     const appointments = await resAppts.json();
     const patients = await resPatients.json();
-    return { appointments, patients };
+
+    const unreadData = resUnread.ok
+      ? await resUnread.json()
+      : { unreadCount: 0 };
+
+    return { appointments, patients, unreadCount: unreadData.unreadCount };
   } catch (error) {
     console.error("Błąd pobierania danych serwera:", error);
-    return { appointments: [], patients: [] };
+    return { appointments: [], patients: [], unreadCount: 0 };
   }
 }
 
@@ -40,9 +50,8 @@ export default async function TherapistDashboard() {
     redirect("/login");
   }
 
-  const { appointments, patients } = await getTherapistDashboardData(
-    session.accessToken as string,
-  );
+  const { appointments, patients, unreadCount } =
+    await getTherapistDashboardData(session.accessToken as string);
 
   const allTodaysAppointments = appointments
     .filter(
@@ -247,14 +256,14 @@ export default async function TherapistDashboard() {
                   </span>
                 </Link>
                 <Link
-                  href="/terapeuta/pacjenci"
+                  href="/terapeuta/czat"
                   className="p-4 border border-gray-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 transition-colors group flex flex-col items-center gap-2 text-center"
                 >
                   <span className="text-2xl opacity-80 group-hover:scale-110 transition-transform">
-                    ➕
+                    💬
                   </span>
                   <span className="text-xs font-medium text-gray-600">
-                    Moi Pacjenci
+                    Czaty
                   </span>
                 </Link>
               </div>
@@ -262,7 +271,7 @@ export default async function TherapistDashboard() {
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h2 className="text-lg font-bold text-gray-800 mb-4">
-                Informacje o bazie
+                Twoje podsumowanie
               </h2>
               <ul className="space-y-3">
                 <li className="text-sm text-gray-600 pb-3 border-b border-gray-50">
@@ -271,8 +280,14 @@ export default async function TherapistDashboard() {
                 </li>
                 <li className="text-sm text-gray-600">
                   <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                  Wszystkie systemowe sloty:{" "}
-                  <strong>{appointments.length}</strong>
+                  Nieodczytane wiadomości:{" "}
+                  <strong
+                    className={
+                      unreadCount > 0 ? "text-emerald-600" : "text-gray-700"
+                    }
+                  >
+                    {unreadCount}
+                  </strong>
                 </li>
               </ul>
             </div>
