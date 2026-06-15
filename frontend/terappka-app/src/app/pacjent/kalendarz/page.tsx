@@ -9,7 +9,8 @@ import Toast from "@/src/components/utils/Toast";
 import type { Appointment, AppointmentStatus } from "@/src/types/appointment";
 import { useSession } from "next-auth/react";
 import PatientAppointmentModal from "@/src/components/calendar/patient/PatientAppointmentModal";
-import { socket } from "@/src/lib/utils";
+import { io } from "socket.io-client";
+import { apiUrl } from "@/src/lib/utils";
 
 export default function PatientCalendarPage() {
   const { data: session } = useSession();
@@ -71,6 +72,8 @@ export default function PatientCalendarPage() {
 
   useEffect(() => {
     if (!session?.accessToken) return;
+
+    const socket = io(apiUrl, { transports: ["websocket"] });
 
     socket.on("connect", () => {
       socket.emit("authenticate", { token: session.accessToken });

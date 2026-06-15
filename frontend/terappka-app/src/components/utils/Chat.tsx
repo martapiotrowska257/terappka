@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { Socket } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import api from "@/src/lib/api";
 import { Message } from "../../types/messages";
-import { socket } from "@/src/lib/utils";
+import { apiUrl } from "@/src/lib/utils";
 
 interface ChatProps {
   otherUserId: string;
@@ -50,6 +50,7 @@ export default function Chat({ otherUserId, otherUserName }: ChatProps) {
   // 2. Obsługa WebSocketów
   useEffect(() => {
     if (!session?.accessToken) return;
+    const socket = io(apiUrl, { transports: ["websocket"] });
 
     socketRef.current = socket;
 

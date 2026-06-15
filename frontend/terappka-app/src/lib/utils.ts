@@ -18,8 +18,6 @@ export const getAppointmentsLabel = (count: number) => {
 export const apiUrl =
   process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
-export const socket = io(apiUrl, { transports: ["websocket"] });
-
 export const EMOTION_TREE = {
   Pozytywnie: [
     "Radość",

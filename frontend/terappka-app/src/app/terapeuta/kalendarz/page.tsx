@@ -9,7 +9,8 @@ import api from "@/src/lib/api";
 import type { Appointment, AppointmentStatus } from "@/src/types/appointment";
 import type { User } from "@/src/types/user";
 import { useSession } from "next-auth/react";
-import { socket } from "@/src/lib/utils";
+import { io } from "socket.io-client";
+import { apiUrl } from "@/src/lib/utils";
 
 export default function TherapistCalendarPage() {
   const { data: session } = useSession();
@@ -78,6 +79,7 @@ export default function TherapistCalendarPage() {
   useEffect(() => {
     if (!session?.accessToken) return;
 
+    const socket = io(apiUrl, { transports: ["websocket"] });
     socket.on("connect", () => {
       socket.emit("authenticate", { token: session.accessToken });
     });
