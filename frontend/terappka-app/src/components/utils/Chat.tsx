@@ -31,13 +31,15 @@ export default function Chat({ otherUserId, otherUserName }: ChatProps) {
     scrollToBottom();
   }, [messages]);
 
-  // 1. Inicjalizacja: Pobieranie historii z API
   useEffect(() => {
     const fetchHistory = async () => {
       if (!session?.accessToken || !otherUserId) return;
       try {
         const res = await api.get(`/api/messages/${otherUserId}`);
         setMessages(res.data);
+
+        // DODANO: Od razu oznaczamy historię jako przeczytaną w bazie!
+        await api.patch(`/api/messages/${otherUserId}/read`);
       } catch (error) {
         console.error("Błąd pobierania historii wiadomości:", error);
       } finally {
@@ -47,7 +49,6 @@ export default function Chat({ otherUserId, otherUserName }: ChatProps) {
     fetchHistory();
   }, [session, otherUserId]);
 
-  // 2. Obsługa WebSocketów
   useEffect(() => {
     if (!session?.accessToken) return;
     const socket = io(apiUrl, { transports: ["websocket"] });
@@ -55,7 +56,6 @@ export default function Chat({ otherUserId, otherUserName }: ChatProps) {
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      // EVENT 1: Użytkownik otwiera czat i się autoryzuje
       socket.emit("authenticate", { token: session.accessToken });
     });
 
@@ -67,24 +67,29 @@ export default function Chat({ otherUserId, otherUserName }: ChatProps) {
       }
     });
 
-    // EVENT 2: Ktoś nam przysłał wiadomość (lub sami wysłaliśmy, w przypadku wielu kart)
-    const handleIncomingMessage = (msg: Message) => {
-      // Upewniamy się, że wiadomość dotyczy tej konkretnej konwersacji
+    const handleIncomingMessage = async (msg: Message) => {
       if (msg.senderId === otherUserId || msg.receiverId === otherUserId) {
         setMessages((prev) => {
-          // Zabezpieczenie przed ewentualnymi duplikatami
           if (prev.find((m) => m.id === msg.id)) return prev;
           return [...prev, msg];
         });
+
+        if (msg.senderId === otherUserId) {
+          try {
+            await api.patch(`/api/messages/${otherUserId}/read`);
+          } catch (e) {
+            console.error(
+              "Nie udało się oznaczyć wiadomości jako przeczytanej",
+              e,
+            );
+          }
+        }
       }
     };
 
     socket.on("receive_message", handleIncomingMessage);
-
-    // Z backendu dostajemy też "message_sent" z zapisaną w bazie wiadomością
     socket.on("message_sent", handleIncomingMessage);
 
-    // Czyszczenie na odmontowanie komponentu
     return () => {
       socket.disconnect();
     };
