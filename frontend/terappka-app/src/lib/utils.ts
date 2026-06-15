@@ -1,5 +1,3 @@
-import { io } from "socket.io-client";
-
 export const getAppointmentsLabel = (count: number) => {
   if (count === 1) return "wizytę";
 
