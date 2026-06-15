@@ -22,12 +22,14 @@ def create_app():
     from .routes.diary import diary_bp
     from .routes.messages import messages_bp
     from .routes.emotions import emotions_bp
+    from .routes.health import health_bp
 
     app.register_blueprint(users_bp)
     app.register_blueprint(appointments_bp)
     app.register_blueprint(diary_bp)
     app.register_blueprint(messages_bp)
     app.register_blueprint(emotions_bp)
+    app.register_blueprint(health_bp)
 
     from . import sockets
     
