@@ -4,26 +4,21 @@ export async function POST(request: Request) {
   try {
     const { email, password, firstName, lastName, role } = await request.json();
 
-    const tokenResponse = await fetch(
-      `${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          client_id: process.env.KEYCLOAK_CLIENT_ID!,
-          client_secret: process.env.KEYCLOAK_CLIENT_SECRET!,
-          grant_type: "client_credentials",
-        }),
-      },
-    );
+    const tokenUrl = `${process.env.KEYCLOAK_INTERNAL_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`;
+    const tokenResponse = await fetch(tokenUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: process.env.KEYCLOAK_CLIENT_ID!,
+        client_secret: process.env.KEYCLOAK_CLIENT_SECRET!,
+        grant_type: "client_credentials",
+      }),
+    });
 
     const tokenData = await tokenResponse.json();
     if (!tokenResponse.ok) throw new Error("Błąd pobierania tokena admina");
     const adminToken = tokenData.access_token;
-    const adminUrl = process.env.KEYCLOAK_ISSUER?.replace(
-      "/realms/",
-      "/admin/realms/",
-    );
+    const adminUrl = `${process.env.KEYCLOAK_INTERNAL_URL}/admin/realms/${process.env.KEYCLOAK_REALM}`;
 
     const createUserResponse = await fetch(`${adminUrl}/users`, {
       method: "POST",
