@@ -10,10 +10,10 @@ class Config:
 
     # --- KONFIGURACJA JWT (KEYCLOAK) ---
     
-    KEYCLOAK_URL = os.environ.get('KEYCLOAK_URL', 'http://localhost:8080')
+    KEYCLOAK_INTERNAL_URL = os.environ.get('KEYCLOAK_INTERNAL_URL', 'http://keycloak:8080')
     KEYCLOAK_REALM = os.environ.get('KEYCLOAK_REALM', 'terappka')
 
-    JWT_PUBLIC_KEY = get_keycloak_public_key(KEYCLOAK_URL, KEYCLOAK_REALM)
+    JWT_PUBLIC_KEY = get_keycloak_public_key(KEYCLOAK_INTERNAL_URL, KEYCLOAK_REALM)
 
     JWT_ALGORITHM = "RS256"
 
