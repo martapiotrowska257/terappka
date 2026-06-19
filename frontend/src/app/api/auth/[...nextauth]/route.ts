@@ -109,6 +109,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id;
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.expiresAt = Date.now() + (user.expiresIn as number) * 1000;
@@ -127,6 +128,9 @@ export const authOptions: NextAuthOptions = {
       session.accessToken = token.accessToken;
       session.error = token.error;
       if (session.user) {
+        (session.user as any).id = token.id;
+        (session.user as any).firstName = token.firstName;
+        (session.user as any).lastName = token.lastName;
         session.user.roles = token.roles;
       }
       return session;
