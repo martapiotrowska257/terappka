@@ -35,6 +35,8 @@ def jwt_required():
                     options={"verify_aud": False} 
                 )
                 g.jwt_payload = payload
+
+                get_current_user_from_token()
                 
             except jwt.ExpiredSignatureError:
                 return jsonify({'error': 'Token wygasł!'}), 401
