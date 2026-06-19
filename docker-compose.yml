@@ -5,13 +5,12 @@ services:
     command: start-dev --import-realm
     environment:
       KC_DB: mysql
-      KC_DB_URL: jdbc:mysql://mysql:3306/keycloak
+      KC_HEALTH_ENABLED: "true"
+      KC_DB_URL: ${KC_DB_URL}
       KC_DB_USERNAME: ${KC_DB_USERNAME}
       KC_DB_PASSWORD: ${KC_DB_PASSWORD}
-
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
       KC_HOSTNAME_URL: http://localhost:8080
       KC_HOSTNAME_ADMIN_URL: http://localhost:8080
     volumes:
@@ -23,11 +22,20 @@ services:
         condition: service_healthy
     networks:
       - terappka_net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "exec 3<>/dev/tcp/127.0.0.1/9000 && echo -e 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && cat <&3 | grep -q 'status.*UP'",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+      start_period: 40s
 
   mysql:
     image: mysql:8.0
     container_name: terappka_db
-    # command: --default-authentication-plugin=mysql_native_password
     restart: always
     volumes:
       - mysql_data:/var/lib/mysql
@@ -45,52 +53,62 @@ services:
       timeout: 20s
       retries: 10
 
-  # backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   container_name: terappka_backend
-  #   ports:
-  #     - "5000:5000"
-  #   environment:
-  #     DATABASE_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
-  #     KEYCLOAK_URL: http://keycloak:8080
-  #     KEYCLOAK_REALM: terappka
-  #     KEYCLOAK_CERTS_URL: http://keycloak:8080/realms/terappka/protocol/openid-connect/certs
-  #     JWT_SECRET_KEY: ${JWT_SECRET_KEY:-MartaMaMałeJajka123}
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: terappka_backend
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      KEYCLOAK_URL: http://localhost:8080
+      KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      KEYCLOAK_REALM: terappka
+      KEYCLOAK_CERTS_URL: http://keycloak:8080/realms/terappka/protocol/openid-connect/certs
+      KEYCLOAK_ISSUER: http://localhost:8080/realms/terappka
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    networks:
+      - terappka_net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import urllib.request; urllib.request.urlopen(''http://127.0.0.1:5000/api/health'')" || exit 1',
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
 
-  #   depends_on:
-  #     mysql:
-  #       condition: service_healthy
-  #     keycloak:
-  #       condition: service_started
-  #   networks:
-  #     - terappka_net
-
-  # frontend:
-  #   build:
-  #     context: ./frontend/terappka-app
-  #     dockerfile: Dockerfile
-  #   container_name: terappka_frontend
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     KEYCLOAK_URL: http://localhost:8080
-  #     KEYCLOAK_INTERNAL_URL: http://keycloak:8080
-  #     KEYCLOAK_REALM: terappka
-  #     KEYCLOAK_CLIENT_ID: terappka-client
-  #     KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
-
-  #     NEXTAUTH_URL: http://localhost:3000
-  #     NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-
-  #     # GOOGLE_CLIENT_ID:
-  #     # GOOGLE_CLIENT_SECRET:
-
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - terappka_net
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: terappka_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      KEYCLOAK_URL: http://localhost:8080
+      KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      KEYCLOAK_REALM: terappka
+      KEYCLOAK_CLIENT_ID: terappka-client
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_ISSUER: http://localhost:8080/realms/terappka
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXT_PUBLIC_API_URL: http://localhost:5000
+      BACKEND_INTERNAL_URL: http://backend:5000
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - terappka_net
 
 volumes:
   mysql_data:
