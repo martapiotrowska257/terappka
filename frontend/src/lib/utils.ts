@@ -13,8 +13,11 @@ export const getAppointmentsLabel = (count: number) => {
   return "wizyt";
 };
 
-export const apiUrl =
-  process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
+const isServer = typeof window === "undefined";
+
+export const apiUrl = isServer
+  ? process.env.BACKEND_INTERNAL_URL || "http://backend:5000"
+  : process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
 export const EMOTION_TREE = {
   Pozytywnie: [
