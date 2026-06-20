@@ -1,16 +1,15 @@
-# terappka
+# TerAppka
 Repozytorium do projektu zespołowego - wdrożenie aplikacji TerAppka
 
-Aby włączyć Keyclock i bazę danych z użyciem Dockera należy wpisać poniższe polecenie w katalogu głównym projektu:
+Uruchomienie aplikacji wymaga posiadania:
+- [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/)
 
-```
-docker compose up --build -d
-```
+Przed uruchomieniem aplikacji należy mieć poprawnie skonfigurowany plik zmiennych środowiskowych `.env` (przykładowe poprawne dane znajdują się w pliku `.env.example`).  
+Przykładowa konfiguracja pośrednika **KeyCloak** znajduje się w pliku `./keycloak_data/realm-config.json`. W przypadku braku tego pliku **Docker Compose** stworzy pusty katalog, a konfigurację pośrednika będzie trzeba dokonać samemu.
 
-Aby włączyć częśc frontendową należy wpisać te polecenie w katalogu `/frontend/terappka-app`
+Aplikację można uruchomić poleceniem `docker compose up --build -d`,  
+zatrzymać poleceniem `docker compose stop`,  
+zrestartować poleceniem `docker compose restart`,  
+a usunąć `docker compose down`.  
 
-```
-npm install
-npm run build
-npm run dev
-```
+Po uruchomieniu aplikacja będzie dostępna pod adresem http://localhost:3000/
