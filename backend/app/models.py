@@ -123,7 +123,7 @@ class Message(db.Model):
             'receiverId': self.receiver_id,
             'content': self.content,
             'isRead': self.is_read,
-            'createdAt': self.createdAt.isoformat() if self.createdAt else None
+            'createdAt': self.createdAt.isoformat() + 'Z' if self.createdAt else None,
         }
     
 class EmotionEntry(db.Model):
@@ -145,5 +145,5 @@ class EmotionEntry(db.Model):
             'patientId': self.patient_id,
             'primaryEmotion': self.primary_emotion,
             'secondaryEmotion': self.secondary_emotion,
-            'createdAt': self.createdAt.isoformat() + 'Z' if self.createdAt else None
+            'createdAt': self.createdAt.isoformat() + 'Z' if self.createdAt else None,
         }

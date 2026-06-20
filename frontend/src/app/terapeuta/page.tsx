@@ -179,6 +179,7 @@ export default async function TherapistDashboard() {
                   const formattedTime = appDate.toLocaleTimeString("pl-PL", {
                     hour: "2-digit",
                     minute: "2-digit",
+                    timeZone: "Europe/Warsaw",
                   });
 
                   return (
@@ -219,9 +220,12 @@ export default async function TherapistDashboard() {
                         </div>
 
                         {isLive ? (
-                          <button className="px-4 py-2 text-sm text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg font-medium transition-colors shadow-sm cursor-pointer">
+                          <Link
+                            href="/terapeuta/czat"
+                            className="px-4 py-2 text-sm text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg font-medium transition-colors shadow-sm cursor-pointer"
+                          >
                             Dołącz (Online)
-                          </button>
+                          </Link>
                         ) : (
                           <Link
                             href="/terapeuta/kalendarz"

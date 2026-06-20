@@ -129,6 +129,7 @@ export default async function PatientDashboard() {
                     {new Date(nextVisit.dateTime).toLocaleTimeString("pl-PL", {
                       hour: "2-digit",
                       minute: "2-digit",
+                      timeZone: "Europe/Warsaw",
                     })}
                   </p>
                 </div>

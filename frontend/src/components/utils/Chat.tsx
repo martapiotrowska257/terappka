@@ -156,6 +156,7 @@ export default function Chat({ otherUserId, otherUserName }: ChatProps) {
             const time = new Date(msg.createdAt).toLocaleTimeString("pl-PL", {
               hour: "2-digit",
               minute: "2-digit",
+              timeZone: "Europe/Warsaw",
             });
 
             return (
