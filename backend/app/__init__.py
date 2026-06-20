@@ -12,7 +12,14 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"]}})
+    CORS(app, resources={
+        r"/*": {
+            "origins": ["http://localhost:3000", "http://127.0.0.1:3000"],
+            "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"],
+            "supports_credentials": True
+        }
+    })
     db.init_app(app)
     
     socketio.init_app(app)
@@ -22,12 +29,14 @@ def create_app():
     from .routes.diary import diary_bp
     from .routes.messages import messages_bp
     from .routes.emotions import emotions_bp
+    from .routes.health import health_bp
 
     app.register_blueprint(users_bp)
     app.register_blueprint(appointments_bp)
     app.register_blueprint(diary_bp)
     app.register_blueprint(messages_bp)
     app.register_blueprint(emotions_bp)
+    app.register_blueprint(health_bp)
 
     from . import sockets
     

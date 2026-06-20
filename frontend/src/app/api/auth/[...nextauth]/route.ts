@@ -4,7 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 async function refreshAccessToken(token: any) {
   try {
-    const url = `${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`;
+    const url = `${process.env.KEYCLOAK_INTERNAL_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`;
     const payload = new URLSearchParams({
       client_id: process.env.KEYCLOAK_CLIENT_ID!,
       client_secret: process.env.KEYCLOAK_CLIENT_SECRET!,
@@ -69,7 +69,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           const res = await fetch(
-            `${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`,
+            `${process.env.KEYCLOAK_INTERNAL_URL}/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
             {
               method: "POST",
               headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -109,6 +109,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id;
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.expiresAt = Date.now() + (user.expiresIn as number) * 1000;
@@ -127,6 +128,9 @@ export const authOptions: NextAuthOptions = {
       session.accessToken = token.accessToken;
       session.error = token.error;
       if (session.user) {
+        (session.user as any).id = token.id;
+        (session.user as any).firstName = token.firstName;
+        (session.user as any).lastName = token.lastName;
         session.user.roles = token.roles;
       }
       return session;

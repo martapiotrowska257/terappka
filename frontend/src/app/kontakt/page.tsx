@@ -1,10 +1,11 @@
+import Link from "next/link";
 import React from "react";
 
 export default function ContactUs() {
   return (
-    <div className="  py-12 px-4 sm:px-6 lg:px-8">
+    <div className="py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
             Skontaktuj się z nami
           </h1>
@@ -15,12 +16,28 @@ export default function ContactUs() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center min-h-[250px]">
-            <p className="text-gray-400 italic">Lorem ipsum (Lewy górny)</p>
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center min-h-[250px] gap-2">
+            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
+              Numer pomocy dla osób w kryzysie
+            </h3>
+            <a
+              href="tel:116123"
+              className="text-5xl font-black text-gray-900 hover:text-gray-700 transition-colors cursor-pointer"
+            >
+              116 123
+            </a>
           </div>
 
-          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center min-h-[250px]">
-            <p className="text-gray-400 italic">Lorem ipsum (Prawy górny)</p>
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center min-h-[250px] gap-2">
+            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
+              Znajdź potrzebną Ci pomoc
+            </h3>
+            <Link
+              href="https://findahelpline.com/countries/pl"
+              className="text-4xl font-black text-gray-900 hover:text-blue-900 hover:underline"
+            >
+              Find A Helpline
+            </Link>
           </div>
 
           <div className="lg:col-span-2 bg-white p-8 rounded-2xl shadow-md border border-gray-100">
